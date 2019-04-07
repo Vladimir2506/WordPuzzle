@@ -4,6 +4,24 @@
              xmlns:local="clr-namespace:WordPuzzle"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!--Set theme styles-->
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <!--Load all components-->
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+                <!--Set colours-->
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Blue.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Accent/MaterialDesignColor.Yellow.xaml" />
+                <ResourceDictionary>
+                    <!-- primary -->
+                    <SolidColorBrush x:Key="GrayDark" Color="#EEEEEE" />
+                    <SolidColorBrush x:Key="GrayLight" Color="#FAFAFA" />
+                    <SolidColorBrush x:Key="WhiteWhite" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="RedAlert" Color="#FF1744" />
+                </ResourceDictionary>
+                <ResourceDictionary Source="Simple Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

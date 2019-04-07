@@ -2,11 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows;
 using System.Threading.Tasks;
 
 namespace WordPuzzle
 {
-
+    public class SuperChar
+    {
+        public string Name { get; set; }
+        public List<Stroke> strokes;
+        public List<Point[]> positions;
+    }
     public class MainLogic
     {
         public enum Solver
@@ -20,7 +26,8 @@ namespace WordPuzzle
         private Dictionary<ushort, char> dictShr2Chr = null;
         private Dictionary<int, List<string>> dictWordData = null;
         private Dictionary<int, ushort[][]> dictDataMatrices = null;
-        Dictionary<int, List<int>> usedIndices = null;
+        private Dictionary<int, List<int>> usedIndices = null;
+        private List<SuperChar> problemBank = null;
         private List<Stroke> puzzleData = null;
 
         private MainLogic()
@@ -31,6 +38,7 @@ namespace WordPuzzle
             dictDataMatrices = new Dictionary<int, ushort[][]>();
             usedIndices = new Dictionary<int, List<int>>();
             puzzleData = new List<Stroke>();
+            problemBank = new List<SuperChar>();
         }
 
         public static MainLogic GetInstance()

@@ -3,10 +3,74 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" 
         xmlns:local="clr-namespace:WordPuzzle"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Loaded="Backbone_Loaded">
-    <Grid>
-        
-    </Grid>
+        Title="填字游戏" Height="650" Width="1200" 
+        Loaded="Backbone_Loaded"
+        Background="{StaticResource WhiteWhite}"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize" WindowStyle="None">
+    <Window.Resources>
+        <local:GridPointConverter x:Key="GridPointCVTR"/>
+    </Window.Resources>
+    <materialDesign:DialogHost
+        x:Name="dlgNotification"
+        FontFamily="Noto Sans CJK SC"
+        TextElement.Foreground="{StaticResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="14"
+        >
+        <Grid x:Name="GridBackground">
+            <ListBox x:Name="lbFunctions" Background="{DynamicResource GrayLight}" HorizontalContentAlignment="Stretch"
+                HorizontalAlignment="Left" Margin="0,60,0,0" Width="200">
+                <ListBoxItem x:Name="Benchmark" Content="人工智能" HorizontalContentAlignment="Center" Selected="Benchmark_Selected"/>
+                <ListBoxItem x:Name="EditPuzzles" Content="编辑谜题库" HorizontalContentAlignment="Center"/>
+                <ListBoxItem x:Name="FormPuzzle" Content="构造新题" HorizontalContentAlignment="Center"/>
+            </ListBox>
+            <materialDesign:ColorZone x:Name="czTitle" Background="{DynamicResource PrimaryHueDarkBrush}" 
+                                      materialDesign:ShadowAssist.ShadowDepth="Depth2" MouseMove="CzTitle_MouseMove" >
+                <DockPanel x:Name="dpTitleBar" Height="60" LastChildFill="False" VerticalAlignment="Top">
+                    <Label x:Name="lblTitle" Content="Word Puzzle" 
+                       Foreground="{StaticResource WhiteWhite}" FontSize="25" FontFamily="Segoe Script" Width="208.22" 
+                       HorizontalContentAlignment="Center" 
+                       ScrollViewer.VerticalScrollBarVisibility="Disabled" 
+                       HorizontalAlignment="Center" Margin="10,-1.1,0,-1.1" VerticalAlignment="Center"/>
+                    <materialDesign:PopupBox x:Name="popMenu"   
+                         Margin="0,2,10,2" DockPanel.Dock="Right" HorizontalContentAlignment="Center" PlacementMode="BottomAndAlignRightEdges"
+                         Foreground="{DynamicResource WhiteWhite}" Width="35" Height="35" VerticalAlignment="Center">
+                        <ListBox x:Name="lbMenu" Width="100" 
+                        TextElement.Foreground="{StaticResource MaterialDesignBody}">
+                            <ListBoxItem x:Name="lbiSettings" Content="设置" HorizontalContentAlignment="Center" />
+                            <ListBoxItem x:Name="lbiQuit" Content="退出" HorizontalContentAlignment="Center" 
+                                     PreviewMouseLeftButtonDown="LbiQuit_PreviewMouseLeftButtonDown" />
+                        </ListBox>
+                    </materialDesign:PopupBox>
+                </DockPanel>
+            </materialDesign:ColorZone>
+            <Button x:Name="btnReset" Content="重置" HorizontalAlignment="Right" Margin="0,0,80,10" VerticalAlignment="Bottom" 
+                    Width="80" d:LayoutOverrides="Height" HorizontalContentAlignment="Center" Click="BtnReset_Click"/>
+            <ItemsControl 
+                x:Name="icContainer" Margin="210,75,65,0" 
+                ItemsSource="{Binding}" Width="920" VerticalAlignment="Top" Height="470" HorizontalAlignment="Right">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <materialDesign:Card 
+                            Width="20" Height="20" Margin="3"
+                            Background="{Binding Converter={StaticResource GridPointCVTR}}">
+                            <TextBlock
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Foreground="{DynamicResource SecondaryAccentForegroundBrush}"
+                                Text="{Binding Path=SelfContent}"/>
+                        </materialDesign:Card>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+        </Grid>
+    </materialDesign:DialogHost>
 </Window>
