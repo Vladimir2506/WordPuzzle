@@ -11,6 +11,7 @@ namespace WordPuzzle
     {
         public string Name { get; set; }
         public List<Stroke> strokes;
+        public TagStroke descriptor;
         public List<Point[]> positions;
     }
     public class MainLogic
@@ -27,7 +28,7 @@ namespace WordPuzzle
         private Dictionary<int, List<string>> dictWordData = null;
         private Dictionary<int, ushort[][]> dictDataMatrices = null;
         private Dictionary<int, List<int>> usedIndices = null;
-        private List<SuperChar> problemBank = null;
+        public List<SuperChar> problemBank = null;
         private List<Stroke> puzzleData = null;
 
         private MainLogic()
@@ -39,6 +40,28 @@ namespace WordPuzzle
             usedIndices = new Dictionary<int, List<int>>();
             puzzleData = new List<Stroke>();
             problemBank = new List<SuperChar>();
+        }
+
+        private SuperChar ConstructRen()
+        {
+            SuperChar s = new SuperChar()
+            {
+                Name = "人",
+                descriptor = new TagStroke()
+                {
+                    nbVerses = 2,
+                    nbAnchors = 1,
+                    lenVerses = new int[] { 7, 5 },
+                    anchors = new int[,] { { 0, 2, 1, 0 } }
+                },
+                positions = new List<Point[]>(
+                    new Point[2][]
+                    {
+                        new Point[7] { new Point(4,0), new Point(4,1),new Point(4,2),new Point(3,3),new Point(2,4),new Point(5,1),new Point(6,0) },
+                        new Point[5] { new Point(4, 2), new Point(5, 3), new Point(6, 4), new Point(7, 5), new Point(8, 6) }
+                    })
+            };
+            return s;
         }
 
         public static MainLogic GetInstance()
@@ -59,6 +82,16 @@ namespace WordPuzzle
             {
                 usedIndices.Add(key, new List<int>());
             }
+        }
+
+        public void SaveBank(string fnBank)
+        {
+            Util.SaveProblemBank(problemBank, fnBank);
+        }
+
+        public void LoadBank(string fnBank)
+        {
+            Util.LoadProblemBank(problemBank, fnBank);
         }
 
         public void MakePuzzleData(List<TagStroke> tags)
@@ -219,7 +252,6 @@ namespace WordPuzzle
             return result.ToArray();
         }
     }
-
 
     public struct TagStroke
     {

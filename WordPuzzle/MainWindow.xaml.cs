@@ -28,7 +28,7 @@ namespace WordPuzzle
 
         private void Backbone_Loaded(object sender, RoutedEventArgs e)
         {
-            /*backend.LoadData(".\\THUOCL_poem.txt", ".\\LUT.txt");
+            /*
             TagStroke tag = new TagStroke()
             {
                 nbVerses = 3,
@@ -42,8 +42,11 @@ namespace WordPuzzle
             Stroke[] result = backend.GetResult();
             string[] resultInChar = backend.Translate(result[0]);
             Console.WriteLine(b);*/
-
+            CreateScene();
             lbFunctions.SelectedIndex = 0;
+            // Util.SaveProblemBank(backend.problemBank, "BANK.txt");
+            backend.LoadData(".\\THUOCL_poem.txt", ".\\LUT.txt");
+            backend.LoadBank(".\\BANK.txt");
         }
 
         private void LbiQuit_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -73,21 +76,36 @@ namespace WordPuzzle
             ResetScene();
         }
 
-        private void ResetScene()
+        private void CreateScene()
         {
             scene = new ObservableCollection<GridPoint>();
             for(int i = 0; i < 18 * 35; ++i)
             {
-                GridPoint gpt = new GridPoint("", i % 35, i / 35);
+                GridPoint gpt = new GridPoint((i % 35).ToString(), i % 35, i / 35);
                 scene.Add(gpt);
             }
             icContainer.ItemsSource = scene;
+        }
+
+        private void ResetScene()
+        {
+            foreach(GridPoint gp in scene)
+            {
+                gp.SelfType = GridPoint.GridPointType.Unset;
+            }
+        }
+
+        private void SetBenchmarkScene()
+        {
+
         }
 
         private void Benchmark_Selected(object sender, RoutedEventArgs e)
         {
             ResetScene();
         }
+
+        
     }
 
     public class GridPoint
@@ -124,7 +142,6 @@ namespace WordPuzzle
         {
             GridPoint gp = value as GridPoint;
             SolidColorBrush brushResult = new SolidColorBrush();
-            
             switch(gp.SelfType)
             {
                 case GridPoint.GridPointType.Unset:

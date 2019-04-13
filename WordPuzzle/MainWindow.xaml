@@ -6,7 +6,7 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" 
         xmlns:local="clr-namespace:WordPuzzle"
         mc:Ignorable="d"
-        Title="填字游戏" Height="650" Width="1200" 
+        Title="填字游戏" Height="750" Width="1350" 
         Loaded="Backbone_Loaded"
         Background="{StaticResource WhiteWhite}"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize" WindowStyle="None">
@@ -50,8 +50,9 @@
             <Button x:Name="btnReset" Content="重置" HorizontalAlignment="Right" Margin="0,0,80,10" VerticalAlignment="Bottom" 
                     Width="80" d:LayoutOverrides="Height" HorizontalContentAlignment="Center" Click="BtnReset_Click"/>
             <ItemsControl 
-                x:Name="icContainer" Margin="210,75,65,0" 
-                ItemsSource="{Binding}" Width="920" VerticalAlignment="Top" Height="470" HorizontalAlignment="Right">
+                x:Name="icContainer" Margin="220,75,0,0" 
+                ItemsSource="{Binding}" Width="1100" VerticalAlignment="Top" Height="570" HorizontalAlignment="Left"
+                Selector.Selected="IcContainer_Selected">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel />
@@ -60,12 +61,14 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <materialDesign:Card 
-                            Width="20" Height="20" Margin="3"
+                            Width="25" Height="25" Margin="3"
                             Background="{Binding Converter={StaticResource GridPointCVTR}}">
-                            <TextBlock
-                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                            <TextBox
+                                HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Foreground="{DynamicResource SecondaryAccentForegroundBrush}"
-                                Text="{Binding Path=SelfContent}"/>
+                                Text="{Binding Path=SelfContent}" MaxLength="1" MinWidth="18"
+                                FontSize="13" MaxLines="1" />
                         </materialDesign:Card>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
