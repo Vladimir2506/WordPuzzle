@@ -6,10 +6,10 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" 
         xmlns:local="clr-namespace:WordPuzzle"
         mc:Ignorable="d"
-        Title="填字游戏" Height="750" Width="1350" 
+        Title="填字游戏" Height="750" Width="1315" 
         Loaded="Backbone_Loaded"
         Background="{StaticResource WhiteWhite}"
-        WindowStartupLocation="CenterScreen" ResizeMode="NoResize" WindowStyle="None">
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize" WindowStyle="None" Closing="Backbone_Closing">
     <Window.Resources>
         <local:GridPointConverter x:Key="GridPointCVTR"/>
     </Window.Resources>
@@ -18,15 +18,21 @@
         FontFamily="Noto Sans CJK SC"
         TextElement.Foreground="{StaticResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
         TextElement.FontSize="14"
         >
         <Grid x:Name="GridBackground">
-            <ListBox x:Name="lbFunctions" Background="{DynamicResource GrayLight}" HorizontalContentAlignment="Stretch"
-                HorizontalAlignment="Left" Margin="0,60,0,0" Width="200">
-                <ListBoxItem x:Name="Benchmark" Content="人工智能" HorizontalContentAlignment="Center" Selected="Benchmark_Selected"/>
-                <ListBoxItem x:Name="EditPuzzles" Content="编辑谜题库" HorizontalContentAlignment="Center"/>
-                <ListBoxItem x:Name="FormPuzzle" Content="构造新题" HorizontalContentAlignment="Center"/>
-            </ListBox>
+            <materialDesign:Card
+                x:Name="CardMenu" materialDesign:ShadowAssist.ShadowDepth="Depth2" Margin="10,65,0,0" Height="147.2" Width="190" HorizontalAlignment="Left">
+                <ListBox x:Name="lbFunctions" HorizontalContentAlignment="Stretch"
+                HorizontalAlignment="Left" Margin="0" Width="190" VerticalAlignment="Top" >
+                    <ListBoxItem x:Name="lbiBenchmark" Content="人工智能" HorizontalContentAlignment="Center" Selected="LbiBenchmark_Selected"/>
+                    <ListBoxItem x:Name="lbiEditPuzzles" Content="编辑谜题库" HorizontalContentAlignment="Center"/>
+                    <ListBoxItem x:Name="lbiPlayManual" Content="手动游玩" HorizontalContentAlignment="Center"/>
+                    <ListBoxItem x:Name="lbiSolveOther" Content="其他谜题" HorizontalContentAlignment="Center"/>
+                </ListBox>
+            </materialDesign:Card>
             <materialDesign:ColorZone x:Name="czTitle" Background="{DynamicResource PrimaryHueDarkBrush}" 
                                       materialDesign:ShadowAssist.ShadowDepth="Depth2" MouseMove="CzTitle_MouseMove" >
                 <DockPanel x:Name="dpTitleBar" Height="60" LastChildFill="False" VerticalAlignment="Top">
@@ -40,19 +46,17 @@
                          Foreground="{DynamicResource WhiteWhite}" Width="35" Height="35" VerticalAlignment="Center">
                         <ListBox x:Name="lbMenu" Width="100" 
                         TextElement.Foreground="{StaticResource MaterialDesignBody}">
-                            <ListBoxItem x:Name="lbiSettings" Content="设置" HorizontalContentAlignment="Center" />
+                            <ListBoxItem x:Name="lbiAbout" Content="关于" HorizontalContentAlignment="Center" />
                             <ListBoxItem x:Name="lbiQuit" Content="退出" HorizontalContentAlignment="Center" 
                                      PreviewMouseLeftButtonDown="LbiQuit_PreviewMouseLeftButtonDown" />
                         </ListBox>
                     </materialDesign:PopupBox>
                 </DockPanel>
             </materialDesign:ColorZone>
-            <Button x:Name="btnReset" Content="重置" HorizontalAlignment="Right" Margin="0,0,80,10" VerticalAlignment="Bottom" 
-                    Width="80" d:LayoutOverrides="Height" HorizontalContentAlignment="Center" Click="BtnReset_Click"/>
             <ItemsControl 
                 x:Name="icContainer" Margin="220,75,0,0" 
                 ItemsSource="{Binding}" Width="1100" VerticalAlignment="Top" Height="570" HorizontalAlignment="Left"
-                Selector.Selected="IcContainer_Selected">
+                >
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel />
@@ -73,7 +77,71 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <materialDesign:Card 
+                x:Name="CardLeft2" HorizontalAlignment="Left" Margin="10,211.88,0,10" VerticalAlignment="Stretch" 
+                Width="190" Height="520" materialDesign:ShadowAssist.ShadowDepth="Depth2">
+                <Grid x:Name="GridCardLeft2" Margin="0,0,0,0" Width="190">
+                    <TextBox 
+                        x:Name="tbCurrentName" Height="40" Margin="70,45,70,0" 
+                        TextWrapping="Wrap" Text="字" VerticalAlignment="Top" 
+                        Width="50" VerticalContentAlignment="Center" 
+                        HorizontalContentAlignment="Center" FontSize="24" 
+                        MaxLines="1" MaxLength="1"/>
+                    <Label x:Name="lblCurrent" Content="当前谜题" HorizontalAlignment="Center" Margin="55,10,55,480" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Button 
+                        x:Name="btnPrevChar" Style="{StaticResource MaterialDesignFloatingActionMiniAccentButton}"
+                        HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Width="35" Height="35">
+                        <materialDesign:PackIcon Kind="KeyboardArrowLeft" Width="25" Height="25"/>
+                    </Button>
+                    <Button 
+                        x:Name="btnNextChar" Style="{StaticResource MaterialDesignFloatingActionMiniAccentButton}" Margin="0,40,15,0" VerticalAlignment="Top" Width="35" Height="35" HorizontalAlignment="Right">
+                        <materialDesign:PackIcon Kind="KeyboardArrowRight" Width="25" Height="25"/>
+                    </Button>
+                    <Label x:Name="lblStroke" Content="笔划" HorizontalAlignment="Left" Margin="10,119,0,0" VerticalAlignment="Top"/>
+                    <DataGrid x:Name="dgStrokes" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="170" Margin="10,154,0,0"/>
+                    <Label x:Name="lblAnchor" Content="连接点" HorizontalAlignment="Left" Margin="10,259,0,0" VerticalAlignment="Top"/>
+                    <DataGrid x:Name="dgAnchor" HorizontalAlignment="Left" Height="150" VerticalAlignment="Top" Width="170" Margin="10,294,0,0"/>
+                    <materialDesign:PopupBox 
+                        x:Name="pbEdit" Width="45" Height="45" 
+                        Style="{StaticResource MaterialDesignMultiFloatingActionPopupBox}" 
+                        Margin="10,465,0,10" PlacementMode="RightAndAlignMiddles" >
+                        <StackPanel x:Name="spAddDel" Orientation="Horizontal">
+                            <Button 
+                                x:Name="btnAddSuperchar" Width="30" Height="30">
+                                <materialDesign:PackIcon Kind="Add" Width="25" Height="25"/>
+                            </Button>
+                            <Button
+                                x:Name="btnEditSuperchar" Width="30" Height="30">
+                                <materialDesign:PackIcon Kind="Edit" Width="25" Height="25"/>
+                            </Button>
+                            <Button
+                                x:Name="btnDelSuperchar" Width="30" Height="30">
+                                <materialDesign:PackIcon Kind="RubbishBin" Width="25" Height="25"/>
+                            </Button>
+                        </StackPanel>
+                    </materialDesign:PopupBox>
+                </Grid>
+            </materialDesign:Card>
+            <materialDesign:Card
+                x:Name="CardBottom2" Width="1085" Height="90" Margin="0,0,10,14" 
+                HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                materialDesign:ShadowAssist.ShadowDepth="Depth2">
+                <Grid
+                    x:Name="GridCardBottom2">
+                    <Button x:Name="btnPrevVerse" Content="上一句" HorizontalAlignment="Left" Margin="59,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
+                    <Button x:Name="btnNextVerse" Content="下一句" HorizontalAlignment="Left" Margin="404,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
+                    <Button x:Name="btnConfirmVerse" Content="确认此句" HorizontalAlignment="Left" Margin="174,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
+                    <Button x:Name="btnClearVerse" Content="清除此句" HorizontalAlignment="Left" Margin="289,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
+                    <Button x:Name="btnPrevStroke" Content="上一连接" HorizontalAlignment="Left" Margin="519,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
+                    <Button x:Name="btnClearStroke" Content="清除连接" HorizontalAlignment="Left" Margin="749,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
+                    <Button x:Name="btnNextStroke" Content="下一连接" HorizontalAlignment="Left" Margin="864,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
+                    <Button x:Name="btnConfirmStroke" Content="确认连接" HorizontalAlignment="Left" Margin="634,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
+                    <Button x:Name="btnConfirmProblem" Content="确认谜题" HorizontalAlignment="Left" Margin="634,10,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2" Style="{DynamicResource MaterialDesignRaisedAccentButton}"/>
+                    <Button x:Name="btnClearProblem" Content="清除谜题" HorizontalAlignment="Left" Margin="749,10,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2" Style="{DynamicResource MaterialDesignRaisedAccentButton}"/>
+                    <Label x:Name="lblCurrentTips" Content="当前为第个连接，第个句子" HorizontalAlignment="Left" Margin="174,10,0,0" VerticalAlignment="Top" Width="435" HorizontalContentAlignment="Center"/>
 
+                </Grid>
+            </materialDesign:Card>
         </Grid>
     </materialDesign:DialogHost>
 </Window>
