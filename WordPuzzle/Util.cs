@@ -144,7 +144,7 @@ namespace WordPuzzle
                 for (int k = 0; k < nbSuperChars; ++k)
                 {
                     SuperChar sc = new SuperChar();
-                    sc.descriptors = new ObservableCollection<TagStroke>();
+                    sc.descriptors = new List<TagStroke>();
                     line = sr.ReadLine();
                     res = line.Split(new char[] { ':', ',' });
                     if (res[0] == "SuperChar" && res[2] == "Name")
@@ -162,7 +162,6 @@ namespace WordPuzzle
                     for(int t = 0; t < nStroke; ++t)
                     {
                         TagStroke descriptor = new TagStroke();
-                        descriptor.Idx = t;
                         descriptor.positions = new List<Point[]>();
                         line = sr.ReadLine();
                         res = line.Split(new char[] { ':' });

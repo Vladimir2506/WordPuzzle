@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -24,9 +25,9 @@ namespace WordPuzzle
         private DispatcherTimer delayExit = null;
         private ObservableCollection<GridPoint> scene = null;
         private const int sceneRows = 18;
-        private const int sceneCols = 35;
+        private const int sceneCols = 34;
         private List<SuperChar> problems = null;
-        private SuperChar superCharEdt = null;
+ 
         private bool IsEditing = false;
         private int selectedCharIdx = -1;
         private DataTable table1 = null;
@@ -73,23 +74,99 @@ namespace WordPuzzle
             CardLeft2.Visibility = Visibility.Visible;
 
             // Clear scene and clear binded points.
+            selectedCharIdx = 0;
             ResetScene();
+            UnsetEdit();
 
             // Set problems.
-            selectedCharIdx = 0;
             LoadOneSuperChar();
+            UpdateCurrentChar();
         }
 
         private void LoadOneSuperChar()
         {
-            btnPrevChar.IsEnabled = selectedCharIdx > 0;
-            btnNextChar.IsEnabled = selectedCharIdx < problems.Count - 1;
             SuperChar selected = problems[selectedCharIdx];
             tbCurrentName.Text = selected.Name;
-            DataTable tableV = new DataTable(), tableA = new DataTable();
-            PrepareTables(tableV, tableA);
-            dgStrokes.ItemsSource = tableV.DefaultView;
-            dgAnchor.ItemsSource = tableA.DefaultView;
+            table1 = new DataTable();
+            table2 = new DataTable();
+            PrepareTables(table1, table2);
+            dgStrokes.ItemsSource = table1.DefaultView;
+            dgAnchor.ItemsSource = table2.DefaultView;
+        }
+
+        private void UpdateCurrentChar()
+        {
+            SuperChar selected = problems[selectedCharIdx];
+            for(int t = 0; t < selected.descriptors.Count; ++t)
+            {
+                TagStroke descriptor = selected.descriptors[t];
+                for(int i = 0; i < descriptor.positions.Count; ++i)
+                {
+                    for(int j = 0; j < descriptor.positions[i].Length; ++j)
+                    {
+                        Point pt = descriptor.positions[i][j];
+                        int sceneIdx = (int)pt.Y * sceneCols + (int)pt.X;
+                        scene[sceneIdx].SelfType = GridPoint.GridPointType.Assigned;
+                        scene[sceneIdx].AddVersePos(selectedCharIdx, t, i, j);
+                    }
+                }
+            }
+        }
+
+        private void SetEdit()
+        {
+            // Disable
+            btnPrevChar.IsEnabled = false;
+            btnNextChar.IsEnabled = false;
+            pbEdit.IsEnabled = false;
+            lbiPlayManual.IsEnabled = false;
+            lbiBenchmark.IsEnabled = false;
+            lbiSolveOther.IsEnabled = false;
+            lbiEditPuzzles.IsEnabled = false;
+
+            // Enable
+            tbCurrentName.IsReadOnly = false;
+            btnPrevVerse.IsEnabled = true;
+            btnNextVerse.IsEnabled = true;
+            btnConfirmVerse.IsEnabled = true;
+            btnClearVerse.IsEnabled = true;
+            btnPrevStroke.IsEnabled = true;
+            btnNextStroke.IsEnabled = true;
+            btnConfirmStroke.IsEnabled = true;
+            btnClearStroke.IsEnabled = true;
+            btnClearProblem.IsEnabled = true;
+            btnConfirmProblem.IsEnabled = true;
+
+            // Flag
+            IsEditing = true;
+        }
+
+        private void UnsetEdit()
+        {
+            // Disable
+            tbCurrentName.IsReadOnly = true;
+            btnPrevVerse.IsEnabled = false;
+            btnNextVerse.IsEnabled = false;
+            btnConfirmVerse.IsEnabled = false;
+            btnClearVerse.IsEnabled = false;
+            btnPrevStroke.IsEnabled = false;
+            btnNextStroke.IsEnabled = false;
+            btnConfirmStroke.IsEnabled = false;
+            btnClearStroke.IsEnabled = false;
+            btnClearProblem.IsEnabled = false;
+            btnConfirmProblem.IsEnabled = false;
+
+            // Enable
+            btnPrevChar.IsEnabled = selectedCharIdx > 0;
+            btnNextChar.IsEnabled = selectedCharIdx < problems.Count - 1;
+            pbEdit.IsEnabled = true;
+            lbiPlayManual.IsEnabled = true;
+            lbiBenchmark.IsEnabled = true;
+            lbiSolveOther.IsEnabled = true;
+            lbiEditPuzzles.IsEnabled = true;
+
+            // Flag
+            IsEditing = false;
         }
 
         private void PrepareTables(DataTable tb1, DataTable tb2)
@@ -122,8 +199,7 @@ namespace WordPuzzle
                     row["CEIdx"] = problems[selectedCharIdx].descriptors[si].anchors[ai, 3];
                     tb2.Rows.Add(row);
                 }
-            }
-            
+            }  
         }
 
         private void CommitTables()
@@ -159,29 +235,30 @@ namespace WordPuzzle
         private void CreateScene()
         {
             scene = new ObservableCollection<GridPoint>();
-            for(int i = 0; i < sceneCols * sceneRows; ++i)
+            icContainer.ItemsSource = scene;
+            for (int i = 0; i < sceneCols * sceneRows; ++i)
             {
                 GridPoint gpt = new GridPoint((i % sceneCols).ToString(), i % sceneCols, i / sceneCols);
                 scene.Add(gpt);
-            }
-            icContainer.ItemsSource = scene;
+            }   
         }
 
         private void ResetScene()
         {
-            foreach(GridPoint gp in scene)
+            for(int i = 0; i < sceneRows * sceneCols; ++i)
             {
-                gp.SelfType = GridPoint.GridPointType.Unset;
-                gp.SelfContent = "";
-                gp.versePos = null;
+                scene[i].SelfContent = "";
+                scene[i].SelfType = GridPoint.GridPointType.Unset;
+                scene[i].ClearVersePos();
             }
         }
 
         private void SetBenchmarkScene()
         {
-            foreach(SuperChar sc in problems)
+            for(int tsc = 0; tsc < 4; ++tsc)
             {
-                for(int t = 0; t < sc.descriptors.Count; ++t)
+                SuperChar sc = problems[tsc];
+                for (int t = 0; t < sc.descriptors.Count; ++t)
                 {
                     TagStroke descriptor = sc.descriptors[t];
                     for (int k = 0; k < descriptor.positions.Count; ++k)
@@ -192,7 +269,7 @@ namespace WordPuzzle
                             Point p = applicants[l];
                             int idx = (int)p.Y * sceneCols + (int)p.X;
                             scene[idx].SelfType = GridPoint.GridPointType.Assigned;
-                            scene[idx].AddVersePos(k, l);
+                            scene[idx].AddVersePos(tsc, t, k, l);
                         }
                     }
                 }
@@ -219,31 +296,97 @@ namespace WordPuzzle
         {
             problems[selectedCharIdx].Name = tbCurrentName.Text;
         }
+
+        private void BtnConfirmProblem_Click(object sender, RoutedEventArgs e)
+        {
+            CommitTables();
+            UnsetEdit();
+        }
+
+        private void BtnEditSuperchar_Click(object sender, RoutedEventArgs e)
+        {
+            SetEdit();
+        }
+
+        private void BtnAddSuperchar_Click(object sender, RoutedEventArgs e)
+        {
+            problems.Add(new SuperChar());
+            selectedCharIdx = problems.Count - 1;
+            table1 = new DataTable();
+            table2 = new DataTable();
+            PrepareTables(table1, table2);
+            dgStrokes.ItemsSource = table1.DefaultView;
+            dgAnchor.ItemsSource = table2.DefaultView;
+            tbCurrentName.Text = problems[selectedCharIdx].Name;
+            ResetScene();
+            UpdateCurrentChar();
+            SetEdit();
+        }
+
+        private void Card_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            ContentPresenter cp = VisualTreeHelper.GetParent((Card)sender) as ContentPresenter;
+            GridPoint gp = cp.Content as GridPoint;
+            
+            Console.WriteLine(gp.SelfPos);
+        }
     }
 
-    public class GridPoint
+    public class GridPoint : INotifyPropertyChanged
     {
         public enum GridPointType
         {
             Unset = 0,
             Assigned = 1
         }
-
-        public string SelfContent { get; set; }
-        public GridPointType SelfType { get; set; }
+        private string _content;
+        public string SelfContent
+        {
+            get { return _content; }
+            set
+            {
+                if (_content == value) return;
+                _content = value;
+                OnPropertyChanged("SelfContent");
+            }
+        }
+        private GridPointType _type;
+        public GridPointType SelfType
+        {
+            get { return _type; }
+            set
+            {
+                if (_type == value) return;
+                _type = value;
+                OnPropertyChanged("SelfType");
+            }
+        }
         public Point SelfPos { get; }
-        public List<Point> versePos = null;
-        public GridPoint(string s, int x, int y, GridPointType gpt = GridPointType.Assigned)
+        public List<int[]> versePos = null;
+        public GridPoint(string s, int x, int y, GridPointType gpt = GridPointType.Unset)
         {
             SelfContent = s;
             SelfPos = new Point(x, y);
             SelfType = gpt;
-            versePos = new List<Point>();
+            versePos = new List<int[]>();
         }
-        public void AddVersePos(int verseIdx, int wordIdx)
+        public void AddVersePos(int scIdx, int strokeIdx, int verseIdx, int wordIdx)
         {
-            versePos.Add(new Point(verseIdx, wordIdx));
+            versePos.Add(new int[] { scIdx, strokeIdx, verseIdx, wordIdx });
         }
+        public void ClearVersePos()
+        {
+            versePos.Clear();
+        }
+        #region implement property changed 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+         
+        }
+        #endregion
     }
 
     public class GridPointConverter : IValueConverter
@@ -258,9 +401,9 @@ namespace WordPuzzle
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            GridPoint gp = value as GridPoint;
+            GridPoint.GridPointType tp = (GridPoint.GridPointType)value;
             SolidColorBrush brushResult = new SolidColorBrush();
-            switch(gp.SelfType)
+            switch(tp)
             {
                 case GridPoint.GridPointType.Unset:
                     brushResult.Color = Colors.White;

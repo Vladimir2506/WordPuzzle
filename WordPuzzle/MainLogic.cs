@@ -12,7 +12,14 @@ namespace WordPuzzle
     {
         public string Name { get; set; }
         public List<Stroke> strokes;
-        public ObservableCollection<TagStroke> descriptors;
+        public List<TagStroke> descriptors;
+
+        public SuperChar()
+        {
+            Name = "";
+            strokes = new List<Stroke>();
+            descriptors = new List<TagStroke>();
+        }
     }
     public class MainLogic
     {
@@ -47,7 +54,7 @@ namespace WordPuzzle
             SuperChar s = new SuperChar()
             {
                 Name = "人",
-                descriptors = new ObservableCollection<TagStroke>() {
+                descriptors = new List<TagStroke>() {
                     new TagStroke()
                     {
                         nbVerses = 2,
@@ -261,7 +268,6 @@ namespace WordPuzzle
         public int nbAnchors;
         public int[,] anchors { get; set; }
         public List<Point[]> positions;
-        public int Idx { get; set; }
     }
 
     public class Stroke

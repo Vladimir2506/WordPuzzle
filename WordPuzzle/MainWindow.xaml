@@ -64,23 +64,23 @@
             </materialDesign:ColorZone>
             <ItemsControl 
                 x:Name="icContainer" Margin="220,75,0,0" 
-                ItemsSource="{Binding}" Width="1100" VerticalAlignment="Top" Height="570" HorizontalAlignment="Left"
-                >
+                ItemsSource="{Binding}" 
+                Width="1085" VerticalAlignment="Top" Height="565" HorizontalAlignment="Left">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <WrapPanel />
+                        <UniformGrid x:Name="GridCards" Columns="34" Rows="18" />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <materialDesign:Card 
-                            Width="25" Height="25" Margin="3"
-                            Background="{Binding Converter={StaticResource GridPointCVTR}}">
+                            Width="25" Height="25" Margin="2" PreviewMouseLeftButtonDown="Card_PreviewMouseLeftButtonDown"
+                            Background="{Binding Path=SelfType, Converter={StaticResource GridPointCVTR}, UpdateSourceTrigger=PropertyChanged}">
                             <TextBox
                                 HorizontalAlignment="Center" VerticalAlignment="Center" 
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Foreground="{DynamicResource SecondaryAccentForegroundBrush}"
-                                Text="{Binding Path=SelfContent}" MaxLength="1" MinWidth="18"
+                                Text="{Binding Path=SelfContent, UpdateSourceTrigger=PropertyChanged}" MaxLength="1" MinWidth="18"
                                 FontSize="13" MaxLines="1" />
                         </materialDesign:Card>
                     </DataTemplate>
@@ -143,11 +143,11 @@
                         Margin="10,465,0,10" PlacementMode="RightAndAlignMiddles" >
                         <StackPanel x:Name="spAddDel" Orientation="Horizontal">
                             <Button 
-                                x:Name="btnAddSuperchar" Width="30" Height="30">
+                                x:Name="btnAddSuperchar" Width="30" Height="30" Click="BtnAddSuperchar_Click">
                                 <materialDesign:PackIcon Kind="Add" Width="25" Height="25"/>
                             </Button>
                             <Button
-                                x:Name="btnEditSuperchar" Width="30" Height="30">
+                                x:Name="btnEditSuperchar" Width="30" Height="30" Click="BtnEditSuperchar_Click">
                                 <materialDesign:PackIcon Kind="Edit" Width="25" Height="25"/>
                             </Button>
                             <Button
@@ -172,7 +172,7 @@
                     <Button x:Name="btnClearStroke" Content="清除连接" HorizontalAlignment="Left" Margin="749,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
                     <Button x:Name="btnNextStroke" Content="下一连接" HorizontalAlignment="Left" Margin="864,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
                     <Button x:Name="btnConfirmStroke" Content="确认连接" HorizontalAlignment="Left" Margin="634,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
-                    <Button x:Name="btnConfirmProblem" Content="确认谜题" HorizontalAlignment="Left" Margin="634,10,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2" Style="{DynamicResource MaterialDesignRaisedAccentButton}"/>
+                    <Button x:Name="btnConfirmProblem" Content="确认谜题" HorizontalAlignment="Left" Margin="634,10,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2" Style="{DynamicResource MaterialDesignRaisedAccentButton}" Click="BtnConfirmProblem_Click"/>
                     <Button x:Name="btnClearProblem" Content="清除谜题" HorizontalAlignment="Left" Margin="749,10,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2" Style="{DynamicResource MaterialDesignRaisedAccentButton}"/>
                     <Label x:Name="lblCurrentTips" Content="当前为第个连接，第个句子" HorizontalAlignment="Left" Margin="174,10,0,0" VerticalAlignment="Top" Width="435" HorizontalContentAlignment="Center"/>
 
