@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace WordPuzzle
@@ -11,8 +12,7 @@ namespace WordPuzzle
     {
         public string Name { get; set; }
         public List<Stroke> strokes;
-        public TagStroke descriptor;
-        public List<Point[]> positions;
+        public ObservableCollection<TagStroke> descriptors;
     }
     public class MainLogic
     {
@@ -47,19 +47,20 @@ namespace WordPuzzle
             SuperChar s = new SuperChar()
             {
                 Name = "人",
-                descriptor = new TagStroke()
-                {
-                    nbVerses = 2,
-                    nbAnchors = 1,
-                    lenVerses = new int[] { 7, 5 },
-                    anchors = new int[,] { { 0, 2, 1, 0 } }
-                },
-                positions = new List<Point[]>(
-                    new Point[2][]
+                descriptors = new ObservableCollection<TagStroke>() {
+                    new TagStroke()
                     {
-                        new Point[7] { new Point(4,0), new Point(4,1),new Point(4,2),new Point(3,3),new Point(2,4),new Point(5,1),new Point(6,0) },
-                        new Point[5] { new Point(4, 2), new Point(5, 3), new Point(6, 4), new Point(7, 5), new Point(8, 6) }
-                    })
+                        nbVerses = 2,
+                        nbAnchors = 1,
+                        lenVerses = new int[] { 7, 5 },
+                        anchors = new int[,] { { 0, 2, 1, 0 } },
+                        positions = new List<Point[]>()
+                        {
+                            new Point[7] { new Point(4,0), new Point(4,1),new Point(4,2),new Point(3,3),new Point(2,4),new Point(5,1),new Point(6,0) },
+                            new Point[5] { new Point(4, 2), new Point(5, 3), new Point(6, 4), new Point(7, 5), new Point(8, 6) }
+                        }
+                    }
+                }
             };
             return s;
         }
@@ -253,12 +254,14 @@ namespace WordPuzzle
         }
     }
 
-    public struct TagStroke
+    public class TagStroke
     {
         public int nbVerses;
-        public int[] lenVerses;
+        public int[] lenVerses { get; set; }
         public int nbAnchors;
-        public int[,] anchors;
+        public int[,] anchors { get; set; }
+        public List<Point[]> positions;
+        public int Idx { get; set; }
     }
 
     public class Stroke

@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using System.ComponentModel;
+using System.Data;
 using MaterialDesignThemes.Wpf;
 
 
@@ -25,10 +26,11 @@ namespace WordPuzzle
         private const int sceneRows = 18;
         private const int sceneCols = 35;
         private List<SuperChar> problems = null;
-
         private SuperChar superCharEdt = null;
         private bool IsEditing = false;
-        private int SelectedPuzzleIdx = -1;
+        private int selectedCharIdx = -1;
+        private DataTable table1 = null;
+        private DataTable table2 = null;
 
         public MainWindow()
         {
@@ -59,8 +61,76 @@ namespace WordPuzzle
 
             // UI Init.
             CreateScene();
-            lbFunctions.SelectedIndex = 0;
+            lbFunctions.SelectedIndex = 1;
         }
+
+        private void PrepareEditProblems()
+        {
+            // Do initialization work to perform edit.
+
+            // Setting UI Visibility.
+            CardBottom2.Visibility = Visibility.Visible;
+            CardLeft2.Visibility = Visibility.Visible;
+
+            // Clear scene and clear binded points.
+            ResetScene();
+
+            // Set problems.
+            selectedCharIdx = 0;
+            LoadOneSuperChar();
+        }
+
+        private void LoadOneSuperChar()
+        {
+            btnPrevChar.IsEnabled = selectedCharIdx > 0;
+            btnNextChar.IsEnabled = selectedCharIdx < problems.Count - 1;
+            SuperChar selected = problems[selectedCharIdx];
+            tbCurrentName.Text = selected.Name;
+            DataTable tableV = new DataTable(), tableA = new DataTable();
+            PrepareTables(tableV, tableA);
+            dgStrokes.ItemsSource = tableV.DefaultView;
+            dgAnchor.ItemsSource = tableA.DefaultView;
+        }
+
+        private void PrepareTables(DataTable tb1, DataTable tb2)
+        {
+            tb1.Columns.Add("StrokeIdx", typeof(int));
+            tb1.Columns.Add("VerseIdx", typeof(int));
+            tb1.Columns.Add("VerseLen", typeof(int));
+            tb2.Columns.Add("StrokeIdx", typeof(int));
+            tb2.Columns.Add("VSIdx", typeof(int));
+            tb2.Columns.Add("CSIdx", typeof(int));
+            tb2.Columns.Add("VEIdx", typeof(int));
+            tb2.Columns.Add("CEIdx", typeof(int));
+            for(int si = 0; si < problems[selectedCharIdx].descriptors.Count; ++si)
+            {   
+                for(int vi = 0; vi < problems[selectedCharIdx].descriptors[si].nbVerses; ++vi)
+                {
+                    DataRow row = tb1.NewRow();
+                    row["StrokeIdx"] = si;
+                    row["VerseIdx"] = vi;
+                    row["VerseLen"] = problems[selectedCharIdx].descriptors[si].lenVerses[vi];
+                    tb1.Rows.Add(row);
+                }
+                for(int ai = 0; ai < problems[selectedCharIdx].descriptors[si].nbAnchors; ++ai)
+                {
+                    DataRow row = tb2.NewRow();
+                    row["StrokeIdx"] = si;
+                    row["VSIdx"] = problems[selectedCharIdx].descriptors[si].anchors[ai, 0];
+                    row["CSIdx"] = problems[selectedCharIdx].descriptors[si].anchors[ai, 1];
+                    row["VEIdx"] = problems[selectedCharIdx].descriptors[si].anchors[ai, 2];
+                    row["CEIdx"] = problems[selectedCharIdx].descriptors[si].anchors[ai, 3];
+                    tb2.Rows.Add(row);
+                }
+            }
+            
+        }
+
+        private void CommitTables()
+        {
+
+        }
+
 
         private void LbiQuit_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -102,6 +172,8 @@ namespace WordPuzzle
             foreach(GridPoint gp in scene)
             {
                 gp.SelfType = GridPoint.GridPointType.Unset;
+                gp.SelfContent = "";
+                gp.versePos = null;
             }
         }
 
@@ -109,15 +181,19 @@ namespace WordPuzzle
         {
             foreach(SuperChar sc in problems)
             {
-                for(int k = 0; k < sc.positions.Count; ++k)
+                for(int t = 0; t < sc.descriptors.Count; ++t)
                 {
-                    Point[] applicants = sc.positions[k];
-                    for(int l = 0;l < applicants.Length; ++l)
+                    TagStroke descriptor = sc.descriptors[t];
+                    for (int k = 0; k < descriptor.positions.Count; ++k)
                     {
-                        Point p = applicants[l];
-                        int idx = (int)p.Y * sceneCols + (int)p.X;
-                        scene[idx].SelfType = GridPoint.GridPointType.Assigned;
-                        scene[idx].AddVersePos(k, l);
+                        Point[] applicants = descriptor.positions[k];
+                        for (int l = 0; l < applicants.Length; ++l)
+                        {
+                            Point p = applicants[l];
+                            int idx = (int)p.Y * sceneCols + (int)p.X;
+                            scene[idx].SelfType = GridPoint.GridPointType.Assigned;
+                            scene[idx].AddVersePos(k, l);
+                        }
                     }
                 }
             }
@@ -132,6 +208,16 @@ namespace WordPuzzle
         private void Backbone_Closing(object sender, CancelEventArgs e)
         {
             backend.SaveBank(".\\BANK.txt");
+        }
+
+        private void LbiEditPuzzles_Selected(object sender, RoutedEventArgs e)
+        {
+            PrepareEditProblems();
+        }
+
+        private void TbCurrentName_LostFocus(object sender, RoutedEventArgs e)
+        {
+            problems[selectedCharIdx].Name = tbCurrentName.Text;
         }
     }
 
@@ -192,4 +278,5 @@ namespace WordPuzzle
         }
     }
 
+    
 }

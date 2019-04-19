@@ -5,12 +5,21 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" 
         xmlns:local="clr-namespace:WordPuzzle"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="填字游戏" Height="750" Width="1315" 
         Loaded="Backbone_Loaded"
         Background="{StaticResource WhiteWhite}"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize" WindowStyle="None" Closing="Backbone_Closing">
     <Window.Resources>
+        <sys:Int32 x:Key="Desc1_C0">0</sys:Int32>
+        <sys:Int32 x:Key="Desc1_C1">1</sys:Int32>
+        <sys:Int32 x:Key="Desc1_C2">2</sys:Int32>
+        <sys:Int32 x:Key="Desc2_C0">3</sys:Int32>
+        <sys:Int32 x:Key="Desc2_C1">4</sys:Int32>
+        <sys:Int32 x:Key="Desc2_C2">5</sys:Int32>
+        <sys:Int32 x:Key="Desc2_C3">6</sys:Int32>
+        <sys:Int32 x:Key="Desc2_C4">7</sys:Int32>
         <local:GridPointConverter x:Key="GridPointCVTR"/>
     </Window.Resources>
     <materialDesign:DialogHost
@@ -28,7 +37,7 @@
                 <ListBox x:Name="lbFunctions" HorizontalContentAlignment="Stretch"
                 HorizontalAlignment="Left" Margin="0" Width="190" VerticalAlignment="Top" >
                     <ListBoxItem x:Name="lbiBenchmark" Content="人工智能" HorizontalContentAlignment="Center" Selected="LbiBenchmark_Selected"/>
-                    <ListBoxItem x:Name="lbiEditPuzzles" Content="编辑谜题库" HorizontalContentAlignment="Center"/>
+                    <ListBoxItem x:Name="lbiEditPuzzles" Content="编辑谜题库" HorizontalContentAlignment="Center" Selected="LbiEditPuzzles_Selected"/>
                     <ListBoxItem x:Name="lbiPlayManual" Content="手动游玩" HorizontalContentAlignment="Center"/>
                     <ListBoxItem x:Name="lbiSolveOther" Content="其他谜题" HorizontalContentAlignment="Center"/>
                 </ListBox>
@@ -86,7 +95,7 @@
                         TextWrapping="Wrap" Text="字" VerticalAlignment="Top" 
                         Width="50" VerticalContentAlignment="Center" 
                         HorizontalContentAlignment="Center" FontSize="24" 
-                        MaxLines="1" MaxLength="1"/>
+                        MaxLines="1" MaxLength="1" LostFocus="TbCurrentName_LostFocus"/>
                     <Label x:Name="lblCurrent" Content="当前谜题" HorizontalAlignment="Center" Margin="55,10,55,480" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                     <Button 
                         x:Name="btnPrevChar" Style="{StaticResource MaterialDesignFloatingActionMiniAccentButton}"
@@ -98,9 +107,36 @@
                         <materialDesign:PackIcon Kind="KeyboardArrowRight" Width="25" Height="25"/>
                     </Button>
                     <Label x:Name="lblStroke" Content="笔划" HorizontalAlignment="Left" Margin="10,119,0,0" VerticalAlignment="Top"/>
-                    <DataGrid x:Name="dgStrokes" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="170" Margin="10,154,0,0"/>
+                    <DataGrid 
+                        x:Name="dgStrokes" HorizontalAlignment="Left" Height="100" 
+                        VerticalAlignment="Top" Width="170" Margin="10,154,0,0"
+                        materialDesign:DataGridAssist.ColumnHeaderPadding="1,3,1,3" 
+                        CanUserAddRows="False" CanUserResizeRows="False" CanUserSortColumns="False"
+                        AutoGenerateColumns="False" CanUserResizeColumns="False" CanUserReorderColumns="False" 
+                        ItemsSource="{Binding}" HorizontalScrollBarVisibility="Hidden"
+                        HorizontalContentAlignment="Center">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="连接" Binding="{Binding StrokeIdx}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="句子" Binding="{Binding VerseIdx}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="长度" Binding="{Binding VerseLen}" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
                     <Label x:Name="lblAnchor" Content="连接点" HorizontalAlignment="Left" Margin="10,259,0,0" VerticalAlignment="Top"/>
-                    <DataGrid x:Name="dgAnchor" HorizontalAlignment="Left" Height="150" VerticalAlignment="Top" Width="170" Margin="10,294,0,0"/>
+                    <DataGrid 
+                        x:Name="dgAnchor" HorizontalAlignment="Left" Height="150" VerticalAlignment="Top" Width="170" Margin="10,294,0,0"
+                        materialDesign:DataGridAssist.ColumnHeaderPadding="1,3,1,3" 
+                        CanUserAddRows="False" CanUserResizeRows="False" CanUserSortColumns="False"
+                        AutoGenerateColumns="False" CanUserResizeColumns="False" CanUserReorderColumns="False" 
+                        ItemsSource="{Binding}" HorizontalScrollBarVisibility="Hidden"
+                        HorizontalContentAlignment="Center">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="连接" Binding="{Binding StrokeIdx}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="句1" Binding="{Binding VSIdx}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="字1" Binding="{Binding CSIdx}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="句2" Binding="{Binding VEIdx}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="字2" Binding="{Binding CEIdx}" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
                     <materialDesign:PopupBox 
                         x:Name="pbEdit" Width="45" Height="45" 
                         Style="{StaticResource MaterialDesignMultiFloatingActionPopupBox}" 
