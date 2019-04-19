@@ -30,6 +30,10 @@ namespace WordPuzzle
  
         private bool IsEditing = false;
         private int selectedCharIdx = -1;
+        private int curStroke = -1;
+        private int curVerse = -1;
+        private int curWord = -1;
+        private List<Point> ptsEdt = null;
         private DataTable table1 = null;
         private DataTable table2 = null;
 
@@ -85,8 +89,7 @@ namespace WordPuzzle
 
         private void LoadOneSuperChar()
         {
-            SuperChar selected = problems[selectedCharIdx];
-            tbCurrentName.Text = selected.Name;
+            selectedCharIdx = 0;
             table1 = new DataTable();
             table2 = new DataTable();
             PrepareTables(table1, table2);
@@ -97,7 +100,8 @@ namespace WordPuzzle
         private void UpdateCurrentChar()
         {
             SuperChar selected = problems[selectedCharIdx];
-            for(int t = 0; t < selected.descriptors.Count; ++t)
+            tbCurrentName.Text = selected.Name;
+            for (int t = 0; t < selected.descriptors.Count; ++t)
             {
                 TagStroke descriptor = selected.descriptors[t];
                 for(int i = 0; i < descriptor.positions.Count; ++i)
@@ -111,6 +115,11 @@ namespace WordPuzzle
                     }
                 }
             }
+            table1 = new DataTable();
+            table2 = new DataTable();
+            PrepareTables(table1, table2);
+            dgStrokes.ItemsSource = table1.DefaultView;
+            dgAnchor.ItemsSource = table2.DefaultView;
         }
 
         private void SetEdit()
@@ -119,23 +128,15 @@ namespace WordPuzzle
             btnPrevChar.IsEnabled = false;
             btnNextChar.IsEnabled = false;
             pbEdit.IsEnabled = false;
-            lbiPlayManual.IsEnabled = false;
+            lbiAdjustment.IsEnabled = false;
             lbiBenchmark.IsEnabled = false;
             lbiSolveOther.IsEnabled = false;
             lbiEditPuzzles.IsEnabled = false;
 
             // Enable
-            tbCurrentName.IsReadOnly = false;
-            btnPrevVerse.IsEnabled = true;
             btnNextVerse.IsEnabled = true;
-            btnConfirmVerse.IsEnabled = true;
-            btnClearVerse.IsEnabled = true;
-            btnPrevStroke.IsEnabled = true;
             btnNextStroke.IsEnabled = true;
-            btnConfirmStroke.IsEnabled = true;
-            btnClearStroke.IsEnabled = true;
-            btnClearProblem.IsEnabled = true;
-            btnConfirmProblem.IsEnabled = true;
+            btnCommit.IsEnabled = true;
 
             // Flag
             IsEditing = true;
@@ -144,23 +145,16 @@ namespace WordPuzzle
         private void UnsetEdit()
         {
             // Disable
-            tbCurrentName.IsReadOnly = true;
-            btnPrevVerse.IsEnabled = false;
             btnNextVerse.IsEnabled = false;
-            btnConfirmVerse.IsEnabled = false;
-            btnClearVerse.IsEnabled = false;
-            btnPrevStroke.IsEnabled = false;
             btnNextStroke.IsEnabled = false;
-            btnConfirmStroke.IsEnabled = false;
-            btnClearStroke.IsEnabled = false;
-            btnClearProblem.IsEnabled = false;
-            btnConfirmProblem.IsEnabled = false;
+            btnCommit.IsEnabled = false;
 
             // Enable
             btnPrevChar.IsEnabled = selectedCharIdx > 0;
             btnNextChar.IsEnabled = selectedCharIdx < problems.Count - 1;
+            btnDelSuperchar.IsEnabled = selectedCharIdx > 0;
             pbEdit.IsEnabled = true;
-            lbiPlayManual.IsEnabled = true;
+            lbiAdjustment.IsEnabled = true;
             lbiBenchmark.IsEnabled = true;
             lbiSolveOther.IsEnabled = true;
             lbiEditPuzzles.IsEnabled = true;
@@ -179,34 +173,28 @@ namespace WordPuzzle
             tb2.Columns.Add("CSIdx", typeof(int));
             tb2.Columns.Add("VEIdx", typeof(int));
             tb2.Columns.Add("CEIdx", typeof(int));
-            for(int si = 0; si < problems[selectedCharIdx].descriptors.Count; ++si)
-            {   
-                for(int vi = 0; vi < problems[selectedCharIdx].descriptors[si].nbVerses; ++vi)
+            for (int si = 0; si < problems[selectedCharIdx].descriptors.Count; ++si)
+            {
+                for (int vi = 0; vi < problems[selectedCharIdx].descriptors[si].nbVerses; ++vi)
                 {
                     DataRow row = tb1.NewRow();
                     row["StrokeIdx"] = si;
                     row["VerseIdx"] = vi;
-                    row["VerseLen"] = problems[selectedCharIdx].descriptors[si].lenVerses[vi];
+                    row["VerseLen"] = problems[selectedCharIdx].descriptors[si].LenVerses[vi];
                     tb1.Rows.Add(row);
                 }
-                for(int ai = 0; ai < problems[selectedCharIdx].descriptors[si].nbAnchors; ++ai)
+                for (int ai = 0; ai < problems[selectedCharIdx].descriptors[si].nbAnchors; ++ai)
                 {
                     DataRow row = tb2.NewRow();
                     row["StrokeIdx"] = si;
-                    row["VSIdx"] = problems[selectedCharIdx].descriptors[si].anchors[ai, 0];
-                    row["CSIdx"] = problems[selectedCharIdx].descriptors[si].anchors[ai, 1];
-                    row["VEIdx"] = problems[selectedCharIdx].descriptors[si].anchors[ai, 2];
-                    row["CEIdx"] = problems[selectedCharIdx].descriptors[si].anchors[ai, 3];
+                    row["VSIdx"] = problems[selectedCharIdx].descriptors[si].Anchors[ai][0];
+                    row["CSIdx"] = problems[selectedCharIdx].descriptors[si].Anchors[ai][1];
+                    row["VEIdx"] = problems[selectedCharIdx].descriptors[si].Anchors[ai][2];
+                    row["CEIdx"] = problems[selectedCharIdx].descriptors[si].Anchors[ai][3];
                     tb2.Rows.Add(row);
                 }
-            }  
+            }
         }
-
-        private void CommitTables()
-        {
-
-        }
-
 
         private void LbiQuit_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -255,7 +243,7 @@ namespace WordPuzzle
 
         private void SetBenchmarkScene()
         {
-            for(int tsc = 0; tsc < 4; ++tsc)
+            for(int tsc = 0; tsc < 2; ++tsc)
             {
                 SuperChar sc = problems[tsc];
                 for (int t = 0; t < sc.descriptors.Count; ++t)
@@ -297,21 +285,11 @@ namespace WordPuzzle
             problems[selectedCharIdx].Name = tbCurrentName.Text;
         }
 
-        private void BtnConfirmProblem_Click(object sender, RoutedEventArgs e)
-        {
-            CommitTables();
-            UnsetEdit();
-        }
-
-        private void BtnEditSuperchar_Click(object sender, RoutedEventArgs e)
-        {
-            SetEdit();
-        }
-
         private void BtnAddSuperchar_Click(object sender, RoutedEventArgs e)
         {
             problems.Add(new SuperChar());
             selectedCharIdx = problems.Count - 1;
+            problems[selectedCharIdx].descriptors.Add(new TagStroke());
             table1 = new DataTable();
             table2 = new DataTable();
             PrepareTables(table1, table2);
@@ -321,14 +299,153 @@ namespace WordPuzzle
             ResetScene();
             UpdateCurrentChar();
             SetEdit();
+            curStroke = 0;
+            curVerse = 0;
+            curWord = 0;
+            ptsEdt = new List<Point>();
         }
 
         private void Card_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (!IsEditing) return;
             ContentPresenter cp = VisualTreeHelper.GetParent((Card)sender) as ContentPresenter;
             GridPoint gp = cp.Content as GridPoint;
+            int sceneIdx = (int)gp.SelfPos.Y * sceneCols + (int)gp.SelfPos.X;
+            Point thePoint = gp.SelfPos;
+            if(!ptsEdt.Contains(thePoint))
+            {
+                ptsEdt.Add(thePoint);
+                scene[sceneIdx].AddVersePos(selectedCharIdx, curStroke, curVerse, curWord);
+                ++curWord;
+                scene[sceneIdx].SelfType = GridPoint.GridPointType.Assigned;
+
+                bool foundCross = false;
+                for(int k = 0; k < curVerse; ++k)
+                {
+                    List<Point[]> ptsPrev = problems[selectedCharIdx].descriptors[curStroke].positions;
+                    for(int i = 0; i < ptsPrev.Count; ++i)
+                    {
+                        for(int j = 0; j < ptsPrev[i].Length; ++j)
+                        {
+                            if((int)ptsPrev[i][j].X == (int)thePoint.X && (int)ptsPrev[i][j].Y == (int)thePoint.Y)
+                            {
+                                DataRow rowA = table2.NewRow();
+                                rowA["StrokeIdx"] = curStroke;
+                                rowA["VSIdx"] = i;
+                                rowA["CSIdx"] = j;
+                                rowA["VEIdx"] = curVerse;
+                                rowA["CEIdx"] = curWord - 1;
+                                table2.Rows.Add(rowA);
+                                foundCross = true;
+                            }
+                            if (foundCross) break;
+                        }
+                        if (foundCross) break;
+                    }
+                    if (foundCross) break;
+                }
+            }
+            else
+            {
+                lblCurrentTips.Content = "选点重复。";
+            }
             
-            Console.WriteLine(gp.SelfPos);
+        }
+
+        private void BtnCommit_Click(object sender, RoutedEventArgs e)
+        {
+            DataRow rowV = table1.NewRow();
+            rowV["StrokeIdx"] = curStroke;
+            rowV["VerseIdx"] = curVerse;
+            rowV["VerseLen"] = ptsEdt.Count;
+            table1.Rows.Add(rowV);
+            problems[selectedCharIdx].descriptors[curStroke].positions.Add(ptsEdt.ToArray());
+            curVerse = 0;
+            curWord = 0;
+            curStroke = 0;
+            ptsEdt = null;
+            CommitTables();
+            ResetScene();
+            UpdateCurrentChar();
+            UnsetEdit();
+        }
+
+        private void CommitTables()
+        {
+            foreach(DataRow row in table1.Rows)
+            {
+                int stkIdx = (int)row["StrokeIdx"], lenV = (int)row["VerseLen"];
+                if(lenV == 0)
+                {
+                    lblCurrentTips.Content = "题目描述非法。";
+                    problems.RemoveAt(selectedCharIdx);
+                    selectedCharIdx -= 1;
+                    return;
+                }
+                problems[selectedCharIdx].descriptors[stkIdx].LenVerses.Add(lenV);
+                problems[selectedCharIdx].descriptors[stkIdx].nbVerses += 1;
+            }
+            foreach(DataRow row in table2.Rows)
+            {
+                int stkIdx = (int)row["StrokeIdx"];
+                int vs = (int)row["VSIdx"], cs = (int)row["CSIdx"], ve = (int)row["VEIdx"], ce = (int)row["CEIdx"];
+                problems[selectedCharIdx].descriptors[stkIdx].Anchors.Add(new int[] { vs, cs, ve, ce });
+                problems[selectedCharIdx].descriptors[stkIdx].nbAnchors += 1;
+            }
+        }
+
+        private void BtnNextStroke_Click(object sender, RoutedEventArgs e)
+        {
+            DataRow rowV = table1.NewRow();
+            rowV["StrokeIdx"] = curStroke;
+            rowV["VerseIdx"] = curVerse;
+            rowV["VerseLen"] = ptsEdt.Count;
+            table1.Rows.Add(rowV);
+            problems[selectedCharIdx].descriptors[curStroke].positions.Add(ptsEdt.ToArray());
+            curVerse = 0;
+            curWord = 0;
+            ++curStroke;
+            ptsEdt = new List<Point>();
+            problems[selectedCharIdx].descriptors.Add(new TagStroke());
+        }
+
+        private void BtnNextVerse_Click(object sender, RoutedEventArgs e)
+        {
+            DataRow rowV = table1.NewRow();
+            rowV["StrokeIdx"] = curStroke;
+            rowV["VerseIdx"] = curVerse;
+            rowV["VerseLen"] = ptsEdt.Count;
+            table1.Rows.Add(rowV);
+            problems[selectedCharIdx].descriptors[curStroke].positions.Add(ptsEdt.ToArray());
+            ++curVerse;
+            curWord = 0;
+            ptsEdt = new List<Point>();
+        }
+
+        private void BtnDelSuperchar_Click(object sender, RoutedEventArgs e)
+        {
+            int delCharIdx = selectedCharIdx;
+            selectedCharIdx -= 1;
+            ResetScene();
+            UpdateCurrentChar();
+            problems.RemoveAt(delCharIdx);
+            UnsetEdit();
+        }
+
+        private void BtnNextChar_Click(object sender, RoutedEventArgs e)
+        {
+            selectedCharIdx += 1;
+            ResetScene();
+            UpdateCurrentChar();
+            UnsetEdit();
+        }
+
+        private void BtnPrevChar_Click(object sender, RoutedEventArgs e)
+        {
+            selectedCharIdx -= 1;
+            ResetScene();
+            UpdateCurrentChar();
+            UnsetEdit();
         }
     }
 
@@ -384,7 +501,6 @@ namespace WordPuzzle
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-         
         }
         #endregion
     }

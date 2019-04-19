@@ -59,8 +59,8 @@ namespace WordPuzzle
                     {
                         nbVerses = 2,
                         nbAnchors = 1,
-                        lenVerses = new int[] { 7, 5 },
-                        anchors = new int[,] { { 0, 2, 1, 0 } },
+                        LenVerses = new List<int>(){ 7, 5 },
+                        Anchors = new List<int[]> { new int[]{ 0, 2, 1, 0 } },
                         positions = new List<Point[]>()
                         {
                             new Point[7] { new Point(4,0), new Point(4,1),new Point(4,2),new Point(3,3),new Point(2,4),new Point(5,1),new Point(6,0) },
@@ -106,14 +106,11 @@ namespace WordPuzzle
         {
             foreach(TagStroke tag in tags)
             {
-                if(tag.anchors.GetLength(1) != 4)
-                {
-                    throw new ArgumentException("Invalid anchor description.");
-                }
+
                 Stroke stroke = new Stroke(tag.nbVerses, tag.nbAnchors);
                 for(int i = 0; i < tag.nbVerses; ++i)
                 {
-                    stroke.Verses[i] = new Verse(tag.lenVerses[i]);
+                    stroke.Verses[i] = new Verse(tag.LenVerses[i]);
                 }
                 for(int i = 0; i < tag.nbAnchors; ++i)
                 {
@@ -121,10 +118,10 @@ namespace WordPuzzle
                 }
                 for(int i = 0; i < tag.nbAnchors; ++i)
                 {
-                    stroke.Anchors[i][0] = tag.anchors[i, 0];
-                    stroke.Anchors[i][1] = tag.anchors[i, 1];
-                    stroke.Anchors[i][2] = tag.anchors[i, 2];
-                    stroke.Anchors[i][3] = tag.anchors[i, 3];
+                    stroke.Anchors[i][0] = tag.Anchors[i][0];
+                    stroke.Anchors[i][1] = tag.Anchors[i][1];
+                    stroke.Anchors[i][2] = tag.Anchors[i][2];
+                    stroke.Anchors[i][3] = tag.Anchors[i][3];
                 }
                 puzzleData.Add(stroke);
             }
@@ -264,10 +261,19 @@ namespace WordPuzzle
     public class TagStroke
     {
         public int nbVerses;
-        public int[] lenVerses { get; set; }
+        public List<int> LenVerses { get; set; }
         public int nbAnchors;
-        public int[,] anchors { get; set; }
+        public List<int[]> Anchors { get; set; }
         public List<Point[]> positions;
+
+        public TagStroke()
+        {
+            nbAnchors = 0;
+            nbVerses = 0;
+            LenVerses = new List<int>();
+            Anchors = new List<int[]> { };
+            positions = new List<Point[]>();
+        }
     }
 
     public class Stroke

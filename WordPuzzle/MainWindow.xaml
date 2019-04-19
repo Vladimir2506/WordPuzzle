@@ -12,14 +12,6 @@
         Background="{StaticResource WhiteWhite}"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize" WindowStyle="None" Closing="Backbone_Closing">
     <Window.Resources>
-        <sys:Int32 x:Key="Desc1_C0">0</sys:Int32>
-        <sys:Int32 x:Key="Desc1_C1">1</sys:Int32>
-        <sys:Int32 x:Key="Desc1_C2">2</sys:Int32>
-        <sys:Int32 x:Key="Desc2_C0">3</sys:Int32>
-        <sys:Int32 x:Key="Desc2_C1">4</sys:Int32>
-        <sys:Int32 x:Key="Desc2_C2">5</sys:Int32>
-        <sys:Int32 x:Key="Desc2_C3">6</sys:Int32>
-        <sys:Int32 x:Key="Desc2_C4">7</sys:Int32>
         <local:GridPointConverter x:Key="GridPointCVTR"/>
     </Window.Resources>
     <materialDesign:DialogHost
@@ -37,16 +29,17 @@
                 <ListBox x:Name="lbFunctions" HorizontalContentAlignment="Stretch"
                 HorizontalAlignment="Left" Margin="0" Width="190" VerticalAlignment="Top" >
                     <ListBoxItem x:Name="lbiBenchmark" Content="人工智能" HorizontalContentAlignment="Center" Selected="LbiBenchmark_Selected"/>
-                    <ListBoxItem x:Name="lbiEditPuzzles" Content="编辑谜题库" HorizontalContentAlignment="Center" Selected="LbiEditPuzzles_Selected"/>
-                    <ListBoxItem x:Name="lbiPlayManual" Content="手动游玩" HorizontalContentAlignment="Center"/>
+                    <ListBoxItem x:Name="lbiAdjustment" Content="手动指定" HorizontalContentAlignment="Center"/>
+                    <ListBoxItem x:Name="lbiEditPuzzles" Content="编辑谜题" HorizontalContentAlignment="Center" Selected="LbiEditPuzzles_Selected"/>
                     <ListBoxItem x:Name="lbiSolveOther" Content="其他谜题" HorizontalContentAlignment="Center"/>
+                    
                 </ListBox>
             </materialDesign:Card>
             <materialDesign:ColorZone x:Name="czTitle" Background="{DynamicResource PrimaryHueDarkBrush}" 
                                       materialDesign:ShadowAssist.ShadowDepth="Depth2" MouseMove="CzTitle_MouseMove" >
                 <DockPanel x:Name="dpTitleBar" Height="60" LastChildFill="False" VerticalAlignment="Top">
-                    <Label x:Name="lblTitle" Content="Word Puzzle" 
-                       Foreground="{StaticResource WhiteWhite}" FontSize="25" FontFamily="Segoe Script" Width="208.22" 
+                    <Label x:Name="lblTitle" Content="Word Puzzle Playground" 
+                       Foreground="{StaticResource WhiteWhite}" FontSize="25" FontFamily="Segoe Print" Width="350" 
                        HorizontalContentAlignment="Center" 
                        ScrollViewer.VerticalScrollBarVisibility="Disabled" 
                        HorizontalAlignment="Center" Margin="10,-1.1,0,-1.1" VerticalAlignment="Center"/>
@@ -76,35 +69,46 @@
                         <materialDesign:Card 
                             Width="25" Height="25" Margin="2" PreviewMouseLeftButtonDown="Card_PreviewMouseLeftButtonDown"
                             Background="{Binding Path=SelfType, Converter={StaticResource GridPointCVTR}, UpdateSourceTrigger=PropertyChanged}">
-                            <TextBox
+                            <TextBlock
                                 HorizontalAlignment="Center" VerticalAlignment="Center" 
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 Foreground="{DynamicResource SecondaryAccentForegroundBrush}"
-                                Text="{Binding Path=SelfContent, UpdateSourceTrigger=PropertyChanged}" MaxLength="1" MinWidth="18"
-                                FontSize="13" MaxLines="1" />
+                                Text="{Binding Path=SelfContent, UpdateSourceTrigger=PropertyChanged}" MinWidth="18"
+                                FontSize="13" />
                         </materialDesign:Card>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <materialDesign:Card
+                x:Name="CardBottom0" Width="1085" Height="90" Margin="0,0,10,14" 
+                HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                materialDesign:ShadowAssist.ShadowDepth="Depth2">
+            </materialDesign:Card>
+            <materialDesign:Card 
+                x:Name="CardLeft0" HorizontalAlignment="Left" Margin="10,211.88,0,10" VerticalAlignment="Stretch" 
+                Width="190" Height="520" materialDesign:ShadowAssist.ShadowDepth="Depth2">
+            </materialDesign:Card>
             <materialDesign:Card 
                 x:Name="CardLeft2" HorizontalAlignment="Left" Margin="10,211.88,0,10" VerticalAlignment="Stretch" 
                 Width="190" Height="520" materialDesign:ShadowAssist.ShadowDepth="Depth2">
                 <Grid x:Name="GridCardLeft2" Margin="0,0,0,0" Width="190">
                     <TextBox 
                         x:Name="tbCurrentName" Height="40" Margin="70,45,70,0" 
-                        TextWrapping="Wrap" Text="字" VerticalAlignment="Top" 
+                        TextWrapping="Wrap" VerticalAlignment="Top" 
                         Width="50" VerticalContentAlignment="Center" 
                         HorizontalContentAlignment="Center" FontSize="24" 
-                        MaxLines="1" MaxLength="1" LostFocus="TbCurrentName_LostFocus"/>
+                        MaxLines="1" MaxLength="1" LostFocus="TbCurrentName_LostFocus" Text="测"/>
                     <Label x:Name="lblCurrent" Content="当前谜题" HorizontalAlignment="Center" Margin="55,10,55,480" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                     <Button 
                         x:Name="btnPrevChar" Style="{StaticResource MaterialDesignFloatingActionMiniAccentButton}"
-                        HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Width="35" Height="35">
+                        HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Width="35" Height="35"
+                        Click="BtnPrevChar_Click">
                         <materialDesign:PackIcon Kind="KeyboardArrowLeft" Width="25" Height="25"/>
                     </Button>
                     <Button 
-                        x:Name="btnNextChar" Style="{StaticResource MaterialDesignFloatingActionMiniAccentButton}" Margin="0,40,15,0" VerticalAlignment="Top" Width="35" Height="35" HorizontalAlignment="Right">
-                        <materialDesign:PackIcon Kind="KeyboardArrowRight" Width="25" Height="25"/>
+                        x:Name="btnNextChar" Style="{StaticResource MaterialDesignFloatingActionMiniAccentButton}" 
+                        Margin="0,40,15,0" VerticalAlignment="Top" Width="35" Height="35" 
+                        HorizontalAlignment="Right" Click="BtnNextChar_Click">
+                        <materialDesign:PackIcon Kind="KeyboardArrowRight" Width="25" Height="25" />
                     </Button>
                     <Label x:Name="lblStroke" Content="笔划" HorizontalAlignment="Left" Margin="10,119,0,0" VerticalAlignment="Top"/>
                     <DataGrid 
@@ -113,12 +117,11 @@
                         materialDesign:DataGridAssist.ColumnHeaderPadding="1,3,1,3" 
                         CanUserAddRows="False" CanUserResizeRows="False" CanUserSortColumns="False"
                         AutoGenerateColumns="False" CanUserResizeColumns="False" CanUserReorderColumns="False" 
-                        ItemsSource="{Binding}" HorizontalScrollBarVisibility="Hidden"
-                        HorizontalContentAlignment="Center">
+                        ItemsSource="{Binding}" HorizontalContentAlignment="Center">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="连接" Binding="{Binding StrokeIdx}" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="句子" Binding="{Binding VerseIdx}" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="长度" Binding="{Binding VerseLen}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="连接" Binding="{Binding StrokeIdx}" IsReadOnly="True" Width="*"/>
+                            <DataGridTextColumn Header="句子" Binding="{Binding VerseIdx}" IsReadOnly="True" Width="*"/>
+                            <DataGridTextColumn Header="长度" Binding="{Binding VerseLen}" IsReadOnly="True" Width="*"/>
                         </DataGrid.Columns>
                     </DataGrid>
                     <Label x:Name="lblAnchor" Content="连接点" HorizontalAlignment="Left" Margin="10,259,0,0" VerticalAlignment="Top"/>
@@ -127,14 +130,13 @@
                         materialDesign:DataGridAssist.ColumnHeaderPadding="1,3,1,3" 
                         CanUserAddRows="False" CanUserResizeRows="False" CanUserSortColumns="False"
                         AutoGenerateColumns="False" CanUserResizeColumns="False" CanUserReorderColumns="False" 
-                        ItemsSource="{Binding}" HorizontalScrollBarVisibility="Hidden"
-                        HorizontalContentAlignment="Center">
+                        ItemsSource="{Binding}" HorizontalContentAlignment="Center">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="连接" Binding="{Binding StrokeIdx}" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="句1" Binding="{Binding VSIdx}" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="字1" Binding="{Binding CSIdx}" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="句2" Binding="{Binding VEIdx}" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="字2" Binding="{Binding CEIdx}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="连接" Binding="{Binding StrokeIdx}" IsReadOnly="True" Width="*"/>
+                            <DataGridTextColumn Header="句1" Binding="{Binding VSIdx}" IsReadOnly="True" Width="*"/>
+                            <DataGridTextColumn Header="字1" Binding="{Binding CSIdx}" IsReadOnly="True" Width="*"/>
+                            <DataGridTextColumn Header="句2" Binding="{Binding VEIdx}" IsReadOnly="True" Width="*"/>
+                            <DataGridTextColumn Header="字2" Binding="{Binding CEIdx}" IsReadOnly="True" Width="*"/>
                         </DataGrid.Columns>
                     </DataGrid>
                     <materialDesign:PopupBox 
@@ -147,11 +149,7 @@
                                 <materialDesign:PackIcon Kind="Add" Width="25" Height="25"/>
                             </Button>
                             <Button
-                                x:Name="btnEditSuperchar" Width="30" Height="30" Click="BtnEditSuperchar_Click">
-                                <materialDesign:PackIcon Kind="Edit" Width="25" Height="25"/>
-                            </Button>
-                            <Button
-                                x:Name="btnDelSuperchar" Width="30" Height="30">
+                                x:Name="btnDelSuperchar" Width="30" Height="30" Click="BtnDelSuperchar_Click">
                                 <materialDesign:PackIcon Kind="RubbishBin" Width="25" Height="25"/>
                             </Button>
                         </StackPanel>
@@ -164,17 +162,11 @@
                 materialDesign:ShadowAssist.ShadowDepth="Depth2">
                 <Grid
                     x:Name="GridCardBottom2">
-                    <Button x:Name="btnPrevVerse" Content="上一句" HorizontalAlignment="Left" Margin="59,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
-                    <Button x:Name="btnNextVerse" Content="下一句" HorizontalAlignment="Left" Margin="404,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
-                    <Button x:Name="btnConfirmVerse" Content="确认此句" HorizontalAlignment="Left" Margin="174,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
-                    <Button x:Name="btnClearVerse" Content="清除此句" HorizontalAlignment="Left" Margin="289,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
-                    <Button x:Name="btnPrevStroke" Content="上一连接" HorizontalAlignment="Left" Margin="519,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
-                    <Button x:Name="btnClearStroke" Content="清除连接" HorizontalAlignment="Left" Margin="749,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
-                    <Button x:Name="btnNextStroke" Content="下一连接" HorizontalAlignment="Left" Margin="864,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
-                    <Button x:Name="btnConfirmStroke" Content="确认连接" HorizontalAlignment="Left" Margin="634,50,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2"/>
-                    <Button x:Name="btnConfirmProblem" Content="确认谜题" HorizontalAlignment="Left" Margin="634,10,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2" Style="{DynamicResource MaterialDesignRaisedAccentButton}" Click="BtnConfirmProblem_Click"/>
-                    <Button x:Name="btnClearProblem" Content="清除谜题" HorizontalAlignment="Left" Margin="749,10,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2" Style="{DynamicResource MaterialDesignRaisedAccentButton}"/>
-                    <Label x:Name="lblCurrentTips" Content="当前为第个连接，第个句子" HorizontalAlignment="Left" Margin="174,10,0,0" VerticalAlignment="Top" Width="435" HorizontalContentAlignment="Center"/>
+                    <Button x:Name="btnNextVerse" Content="下一句" HorizontalAlignment="Left" Margin="50,30,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2" Click="BtnNextVerse_Click"/>
+                    <Button x:Name="btnNextStroke" Content="下一连接" HorizontalAlignment="Left" Margin="170,30,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2" Click="BtnNextStroke_Click"/>
+                    <Button x:Name="btnCommit" Content="完成" HorizontalAlignment="Left" Margin="290,30,0,0" VerticalAlignment="Top" Width="90" Height="30" Padding="12,2" Click="BtnCommit_Click"/>
+                    <Label x:Name="lblCurrentTips" Content="" HorizontalAlignment="Left" Margin="440,30,0,0" VerticalAlignment="Top"/>
+
 
                 </Grid>
             </materialDesign:Card>

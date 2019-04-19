@@ -103,7 +103,7 @@ namespace WordPuzzle
                         for (int v = 0; v < nV; ++v)
                         {
                             Point[] points = descriptor.positions[v];
-                            int len = descriptor.lenVerses[v];
+                            int len = descriptor.LenVerses[v];
                             line = v.ToString() + ":" + len.ToString() + " ";
                             for (int l = 0; l < len; ++l)
                             {
@@ -116,10 +116,10 @@ namespace WordPuzzle
                         for (int a = 0; a < nA; ++a)
                         {
                             line = a.ToString() + ":"
-                                + descriptor.anchors[a, 0].ToString() + ","
-                                + descriptor.anchors[a, 1].ToString() + ","
-                                + descriptor.anchors[a, 2].ToString() + ","
-                                + descriptor.anchors[a, 3].ToString();
+                                + descriptor.Anchors[a][0].ToString() + ","
+                                + descriptor.Anchors[a][1].ToString() + ","
+                                + descriptor.Anchors[a][2].ToString() + ","
+                                + descriptor.Anchors[a][3].ToString();
                             sw.WriteLine(line);
                         }
                     }
@@ -143,8 +143,10 @@ namespace WordPuzzle
                 bank.Capacity = nbSuperChars;
                 for (int k = 0; k < nbSuperChars; ++k)
                 {
-                    SuperChar sc = new SuperChar();
-                    sc.descriptors = new List<TagStroke>();
+                    SuperChar sc = new SuperChar
+                    {
+                        descriptors = new List<TagStroke>()
+                    };
                     line = sr.ReadLine();
                     res = line.Split(new char[] { ':', ',' });
                     if (res[0] == "SuperChar" && res[2] == "Name")
@@ -161,8 +163,10 @@ namespace WordPuzzle
                     }
                     for(int t = 0; t < nStroke; ++t)
                     {
-                        TagStroke descriptor = new TagStroke();
-                        descriptor.positions = new List<Point[]>();
+                        TagStroke descriptor = new TagStroke
+                        {
+                            positions = new List<Point[]>()
+                        };
                         line = sr.ReadLine();
                         res = line.Split(new char[] { ':' });
                         if(res[0] != "Stroke" || Convert.ToInt32(res[1]) != t) throw new InvalidDataException();
@@ -173,14 +177,13 @@ namespace WordPuzzle
                         {
                             nV = Convert.ToInt32(res[1]);
                             descriptor.nbVerses = nV;
-                            descriptor.lenVerses = new int[nV];
                             for (int v = 0; v < nV; ++v)
                             {
                                 line = sr.ReadLine();
                                 res = line.Split(new char[] { ':', '_', ' ' });
                                 if (v != Convert.ToInt32(res[0])) throw new InvalidDataException();
                                 int len = Convert.ToInt32(res[1]);
-                                descriptor.lenVerses[v] = len;
+                                descriptor.LenVerses.Add(len);
                                 Point[] points = new Point[len];
                                 for (int j = 0; j < len; ++j)
                                 {
@@ -195,17 +198,19 @@ namespace WordPuzzle
                         {
                             nA = Convert.ToInt32(res[1]);
                             descriptor.nbAnchors = nA;
-                            descriptor.anchors = new int[nA, 4];
+                            descriptor.Anchors = new List<int[]>();
                             for (int a = 0; a < nA; ++a)
                             {
                                 line = sr.ReadLine();
                                 res = line.Split(new char[] { ':' });
                                 if (a != Convert.ToInt32(res[0])) throw new InvalidDataException();
                                 res = res[1].Split(new char[] { ',' });
+                                int[] aa = new int[4];
                                 for (int l = 0; l < 4; ++l)
                                 {
-                                    descriptor.anchors[a, l] = Convert.ToInt32(res[l]);
+                                    aa[l] = Convert.ToInt32(res[l]);
                                 }
+                                descriptor.Anchors.Add(aa);
                             }
                         }
                         sc.descriptors.Add(descriptor);
