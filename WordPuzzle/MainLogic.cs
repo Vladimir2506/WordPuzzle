@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 
 namespace WordPuzzle
 {
@@ -25,7 +23,8 @@ namespace WordPuzzle
     {
         public enum Solver
         {
-            NaiveSearch = 0
+            NaiveSearch = 0,
+            Method1 = 1
         }
         // Singleton.
         private static MainLogic theInstance = null;
@@ -33,43 +32,19 @@ namespace WordPuzzle
         private Dictionary<char, ushort> dictChr2Shr = null;
         private Dictionary<ushort, char> dictShr2Chr = null;
         private Dictionary<int, List<string>> dictWordData = null;
-        private Dictionary<int, ushort[][]> dictDataMatrices = null;
+        private Dictionary<int, List<ushort[]>> dictDataMatrices = null;
         private Dictionary<int, List<int>> usedIndices = null;
         public List<SuperChar> problemBank = null;
-        private List<Stroke> puzzleData = null;
+        private Stroke puzzleData = null;
 
         private MainLogic()
         {
             dictChr2Shr = new Dictionary<char, ushort>();
             dictShr2Chr = new Dictionary<ushort, char>();
             dictWordData = new Dictionary<int, List<string>>();
-            dictDataMatrices = new Dictionary<int, ushort[][]>();
+            dictDataMatrices = new Dictionary<int, List<ushort[]>>();
             usedIndices = new Dictionary<int, List<int>>();
-            puzzleData = new List<Stroke>();
             problemBank = new List<SuperChar>();
-        }
-
-        private SuperChar ConstructRen()
-        {
-            SuperChar s = new SuperChar()
-            {
-                Name = "人",
-                descriptors = new List<TagStroke>() {
-                    new TagStroke()
-                    {
-                        nbVerses = 2,
-                        nbAnchors = 1,
-                        LenVerses = new List<int>(){ 7, 5 },
-                        Anchors = new List<int[]> { new int[]{ 0, 2, 1, 0 } },
-                        positions = new List<Point[]>()
-                        {
-                            new Point[7] { new Point(4,0), new Point(4,1),new Point(4,2),new Point(3,3),new Point(2,4),new Point(5,1),new Point(6,0) },
-                            new Point[5] { new Point(4, 2), new Point(5, 3), new Point(6, 4), new Point(7, 5), new Point(8, 6) }
-                        }
-                    }
-                }
-            };
-            return s;
         }
 
         public static MainLogic GetInstance()
@@ -102,67 +77,141 @@ namespace WordPuzzle
             Util.LoadProblemBank(problemBank, fnBank);
         }
 
-        public void MakePuzzleData(List<TagStroke> tags)
+        public void MakePuzzleData(TagStroke tag)
         {
-            foreach(TagStroke tag in tags)
+            Stroke stroke = new Stroke(tag.nbVerses, tag.nbAnchors);
+            for (int i = 0; i < tag.nbVerses; ++i)
             {
-
-                Stroke stroke = new Stroke(tag.nbVerses, tag.nbAnchors);
-                for(int i = 0; i < tag.nbVerses; ++i)
-                {
-                    stroke.Verses[i] = new Verse(tag.LenVerses[i]);
-                }
-                for(int i = 0; i < tag.nbAnchors; ++i)
-                {
-                    stroke.Anchors[i] = new int[4];
-                }
-                for(int i = 0; i < tag.nbAnchors; ++i)
-                {
-                    stroke.Anchors[i][0] = tag.Anchors[i][0];
-                    stroke.Anchors[i][1] = tag.Anchors[i][1];
-                    stroke.Anchors[i][2] = tag.Anchors[i][2];
-                    stroke.Anchors[i][3] = tag.Anchors[i][3];
-                }
-                puzzleData.Add(stroke);
+                stroke.Verses[i] = new Verse(tag.LenVerses[i]);
             }
+            for (int i = 0; i < tag.nbAnchors; ++i)
+            {
+                stroke.Anchors[i] = new int[4];
+            }
+            for (int i = 0; i < tag.nbAnchors; ++i)
+            {
+                stroke.Anchors[i][0] = tag.Anchors[i][0];
+                stroke.Anchors[i][1] = tag.Anchors[i][1];
+                stroke.Anchors[i][2] = tag.Anchors[i][2];
+                stroke.Anchors[i][3] = tag.Anchors[i][3];
+            }
+            puzzleData = stroke;
         }
 
         public void ClearPuzzleData()
         {
-            puzzleData.Clear();
+            puzzleData = null;
         }
 
-        public bool Solve(Solver solver)
+        public void ClearUsedIndices()
         {
-            for(int i = 0; i < puzzleData.Count; ++i)
+            foreach(int key in usedIndices.Keys)
             {
-                if (puzzleData[i].IsCompleted) continue;
-                bool result = false;
-                switch(solver)
-                {
-                    case Solver.NaiveSearch:
-                        result = DoNaiveSearch(puzzleData[i]);
-                        break;
-                    default:
-                        break;
-                }
-                if (!result) return false;
+                usedIndices[key].Clear();
             }
-            return true;
         }
 
-        private bool DoNaiveSearch(Stroke stroke)
+        public void Solve(Solver solver)
+        {
+            switch (solver)
+            {
+                case Solver.NaiveSearch:
+                    DoNaiveSearch(puzzleData);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void DoNaiveSearch(Stroke stroke)
         {
             int nbVerses = stroke.Verses.Count;
-            Stack<int> proposal = new Stack<int>(), 
+            Stack<int> proposal = new Stack<int>(),
                 candidate = new Stack<int>(Enumerable.Reverse(Enumerable.Range(0, nbVerses)));
             List<Verse> result = new List<Verse>();
-            Dictionary<int, Stack<int>> localUsed = new Dictionary<int, Stack<int>>();
-            foreach(int len in usedIndices.Keys)
+            List<int>[] visited = new List<int>[nbVerses];
+            for(int vv = 0; vv < nbVerses; ++vv)
             {
-                localUsed.Add(len, new Stack<int>());
+                visited[vv] = new List<int>();
             }
             while(candidate.Count > 0)
+            {
+                int curIdx = candidate.Pop();
+                List<int> curVisisted = visited[curIdx];
+                // Existing verses construct the constraints.
+                List<int[]> constraints = stroke.Anchors.FindAll(
+                    a => a[2] == curIdx && proposal.Contains(a[0])
+                    );
+                int requiredLength = stroke.Verses[curIdx].Length;
+                bool foundOne = true;
+                // Look up in the data.
+                int s = 0;
+                Verse v = new Verse();
+                for (s = 0; s < dictDataMatrices[requiredLength].Count; ++s)
+                {
+                    // Prevent replicate verses.
+                    foundOne = true;
+                    if (usedIndices[requiredLength].Contains(s) || curVisisted.Contains(s))
+                    {
+                        foundOne = false;
+                        continue;
+                    }
+                    ushort[] content = dictDataMatrices[requiredLength][s];
+                    foreach(int[] a in constraints)
+                    {
+                        // For each search, check the constraints.
+                        ushort trait = content[a[3]], 
+                            check = result[a[0]].Content[a[1]];
+                        if(trait != check)
+                        {
+                            foundOne = false;
+                            break;
+                        }
+                    }
+                    if (foundOne) break;
+                }
+                if(foundOne)
+                {
+                    // Next step.
+                    curVisisted.Add(s);
+                    v.Length = requiredLength;
+                    v.Content = dictDataMatrices[requiredLength][s];
+                    result.Add(v);
+                    proposal.Push(curIdx);
+                }
+                else
+                {                                                               
+                    // Trace back.
+                    curVisisted.Clear();
+                    result.RemoveAt(result.Count - 1);
+                    int lastIdx = proposal.Pop();
+                    candidate.Push(curIdx);
+                    candidate.Push(lastIdx);
+                }
+            }
+            // Get result.
+            stroke.Verses = result;
+            for (int i = 0; i < nbVerses; ++i)
+            {
+                int requiredLength = stroke.Verses[i].Length;
+                int usedIdx = visited[i][visited[i].Count - 1];
+                usedIndices[requiredLength].Add(usedIdx);
+            }
+            stroke.IsCompleted = true;
+        }
+
+        private bool DoSearch1(Stroke stroke)
+        {
+            int nbVerses = stroke.Verses.Count;
+            Stack<int> proposal = new Stack<int>(),
+                candidate = new Stack<int>(Enumerable.Reverse(Enumerable.Range(0, nbVerses)));
+            List<Verse> result = new List<Verse>();
+            Dictionary<int, Stack<int>> visited = new Dictionary<int, Stack<int>>();
+            foreach (int len in usedIndices.Keys)
+            {
+                visited.Add(len, new Stack<int>());
+            }
+            while (candidate.Count > 0)
             {
                 int curIdx = candidate.Pop();
                 // Existing verses construct the constraints.
@@ -173,19 +222,19 @@ namespace WordPuzzle
                 Verse v = new Verse();
                 bool stepDone = false;
                 // Look up in the data.
-                for (int s = 0; s < dictDataMatrices[requiredLength].Length; ++s)
+                for (int s = 0; s < dictDataMatrices[requiredLength].Count; ++s)
                 {
                     // Prevent replicate verses.
-                    if (usedIndices[requiredLength].Contains(s) 
-                        || localUsed[requiredLength].Contains(s)) continue;
+                    if (usedIndices[requiredLength].Contains(s)
+                        || visited[requiredLength].Contains(s)) continue;
                     stepDone = true;
                     ushort[] content = dictDataMatrices[requiredLength][s];
-                    foreach(int[] a in constraints)
+                    foreach (int[] a in constraints)
                     {
                         // For each search, check the constraints.
-                        ushort trait = content[a[3]], 
+                        ushort trait = content[a[3]],
                             check = result[a[0]].Content[a[1]];
-                        if(trait != check)
+                        if (trait != check)
                         {
                             stepDone = false;
                             break;
@@ -196,11 +245,11 @@ namespace WordPuzzle
                         // Success, copy searched to result.
                         v.Content = content;
                         v.Length = requiredLength;
-                        localUsed[requiredLength].Push(s);
+                        visited[requiredLength].Push(s);
                         break;
                     }
                 }
-                if(stepDone)
+                if (stepDone)
                 {
                     // Success, to next verse.
                     proposal.Push(curIdx);
@@ -213,15 +262,15 @@ namespace WordPuzzle
                     int lastIdx = proposal.Pop();
                     candidate.Push(curIdx);
                     candidate.Push(lastIdx);
-                    if (localUsed[requiredLength].Count > 0)
+                    if (visited[requiredLength].Count > 0)
                     {
-                        localUsed[requiredLength].Pop();
+                        visited[requiredLength].Pop();
                     }
                 }
             }
             // Get result.
             int ijk = result.Count - 1;
-            while(proposal.Count > 0)
+            while (proposal.Count > 0)
             {
                 int idx = proposal.Pop();
                 Verse v = result[ijk];
@@ -229,17 +278,17 @@ namespace WordPuzzle
                 stroke.Verses[idx].Content = v.Content;
             }
             // Update used indices.
-            foreach(int key in localUsed.Keys)
+            foreach (int key in visited.Keys)
             {
-                usedIndices[key].AddRange(localUsed[key]);
+                usedIndices[key].AddRange(visited[key]);
             }
             stroke.IsCompleted = true;
             return true;
         }
 
-        public Stroke[] GetResult()
+        public Stroke GetResult()
         {
-            return puzzleData.ToArray();
+            return puzzleData;
         }
         
         public string[] Translate(Stroke stk)
@@ -255,6 +304,22 @@ namespace WordPuzzle
                 result.Add(sb.ToString());
             }
             return result.ToArray();
+        }
+
+        public string TranslateOnce(ushort shr)
+        {
+            return dictShr2Chr[shr].ToString();
+        }
+
+        public void ShuffleDatabase()
+        {
+            Random rnd = new Random();
+            for(int i = 0; i < dictDataMatrices.Count; ++i)
+            {
+                int key = dictDataMatrices.Keys.ElementAt(i);
+                int len = dictDataMatrices[key].Count;
+                dictDataMatrices[key] = dictDataMatrices[key].OrderBy(x => rnd.Next(0, len)).ToList();
+            }
         }
     }
 

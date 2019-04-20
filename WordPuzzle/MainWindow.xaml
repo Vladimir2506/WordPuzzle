@@ -70,10 +70,10 @@
                             Width="25" Height="25" Margin="2" PreviewMouseLeftButtonDown="Card_PreviewMouseLeftButtonDown"
                             Background="{Binding Path=SelfType, Converter={StaticResource GridPointCVTR}, UpdateSourceTrigger=PropertyChanged}">
                             <TextBlock
-                                HorizontalAlignment="Center" VerticalAlignment="Center" 
-                                Foreground="{DynamicResource SecondaryAccentForegroundBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Center" TextBlock.TextAlignment="Center"
+                                Foreground="{DynamicResource SecondaryAccentForegroundBrush}" TextTrimming="CharacterEllipsis"
                                 Text="{Binding Path=SelfContent, UpdateSourceTrigger=PropertyChanged}" MinWidth="18"
-                                FontSize="13" />
+                                FontSize="15" />
                         </materialDesign:Card>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -86,6 +86,21 @@
             <materialDesign:Card 
                 x:Name="CardLeft0" HorizontalAlignment="Left" Margin="10,211.88,0,10" VerticalAlignment="Stretch" 
                 Width="190" Height="520" materialDesign:ShadowAssist.ShadowDepth="Depth2">
+                <Grid x:Name="GridCardLeft0">
+                    <Button 
+                        x:Name="btnClearBenchmark" HorizontalAlignment="Left" Style="{StaticResource MaterialDesignFloatingActionButton}"
+                        Margin="25,65,0,0" VerticalAlignment="Top" Width="50" Height="50" Click="BtnClearBenchmark_Click">
+                        <materialDesign:PackIcon Kind="Refresh" Width="25" Height="25"/>
+                    </Button>
+                    <Label x:Name="lblBenchmarkTitle" Content="测试问题“人工智能”" HorizontalAlignment="Center" Margin="10,10,0,0" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
+                    <Button 
+                        x:Name="btnBeginSolve" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignFloatingActionButton}"
+                        Margin="0,65,25,0" VerticalAlignment="Top" Width="50" Height="50" Click="BtnBeginSolve_Click">
+                        <materialDesign:PackIcon Kind="LightbulbOn" Width="25" Height="25"/>
+                    </Button>
+                    <Label x:Name="lblCleanBenchmark" Content="清空结果" HorizontalAlignment="Left" Margin="20,135,0,0" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
+                    <Label x:Name="lblBeginSolve" Content="开始求解" HorizontalAlignment="Right" Margin="0,135,20,0" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
+                </Grid>
             </materialDesign:Card>
             <materialDesign:Card 
                 x:Name="CardLeft2" HorizontalAlignment="Left" Margin="10,211.88,0,10" VerticalAlignment="Stretch" 

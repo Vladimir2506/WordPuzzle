@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
+using System.Text;
 using System.Windows;
 
 namespace WordPuzzle
@@ -54,17 +51,17 @@ namespace WordPuzzle
 
         public static void Chr2Shr(
             Dictionary<int, List<string>> dictChr, 
-            Dictionary<int, ushort[][]> dictShr,
+            Dictionary<int, List<ushort[]>> dictShr,
             Dictionary<char, ushort> dictCvt
             )
         {
             foreach(int key in dictChr.Keys)
             {
                 List<string> dataInChar = dictChr[key];
-                ushort[][] dataInShort = new ushort[dataInChar.Count][];
+                List<ushort[]> dataInShort = new List<ushort[]>(dataInChar.Count);
                 for(int i = 0; i < dataInChar.Count; ++i)
                 {
-                    dataInShort[i] = new ushort[key];
+                    dataInShort.Add(new ushort[key]);
                 }
                 for(int i = 0; i < dataInChar.Count; ++i)
                 {

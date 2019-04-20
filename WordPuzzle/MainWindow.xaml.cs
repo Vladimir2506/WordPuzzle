@@ -40,24 +40,38 @@ namespace WordPuzzle
         {
             InitializeComponent();
             backend = MainLogic.GetInstance();
-            // Data Init.
-            backend.LoadData(".\\THUOCL_poem.txt", ".\\LUT.txt");
-            backend.LoadBank(".\\BANK.txt");
-            problems = backend.problemBank;
         }
 
         private void Backbone_Loaded(object sender, RoutedEventArgs e)
         {
-            /*
-            TagStroke tag = new TagStroke()
+            // Data Init.
+            backend.LoadData(".\\THUOCL_poem.txt", ".\\LUT.txt");
+            backend.LoadBank(".\\BANK.txt");
+            problems = backend.problemBank;
+            /*TagStroke tag1 = new TagStroke()
             {
-                nbVerses = 3,
-                nbAnchors = 2,
-                lenVerses = new int[]{ 5, 5, 7 },
-                anchors = new int[,] { {0,2,1,0}, { 1,4,2,3}}
+                nbVerses = 4,
+                nbAnchors = 5,
+                LenVerses = new List<int>(){ 5,9,5,5 },
+                Anchors = new List<int[]>{ new int[]{0,0,1,0}, new int[] { 0,2,2,0}, new int[] { 0,4,3,0}, new int[] { 1,6,2,4}, new int[] { 1,8,3,4} }
+            };*/
+            /*TagStroke tag = new TagStroke()
+            {
+                nbVerses = 4,
+                nbAnchors = 5,
+                LenVerses = new List<int>() { 7, 12, 5, 5 },
+                Anchors = new List<int[]> { new int[] { 0, 0, 1, 0 }, new int[] { 0, 2, 2, 0 }, new int[] { 0, 4, 3, 0 }, new int[] { 1, 6, 2, 4 }, new int[] { 1, 8, 3, 4 } }
+            };*/
+            /*TagStroke tag = new TagStroke()
+            {
+                nbVerses = 2,
+                nbAnchors = 1,
+                LenVerses = new List<int>() { 8,5 },
+                Anchors = new List<int[]> { new int[] { 0, 2, 1, 4 } }
             };
             List<TagStroke> tags = new List<TagStroke>(new TagStroke[] { tag });
             backend.MakePuzzleData(tags);
+            backend.ShuffleDatabase();
             bool b = backend.Solve(MainLogic.Solver.NaiveSearch);
             Stroke[] result = backend.GetResult();
             string[] resultInChar = backend.Translate(result[0]);
@@ -65,7 +79,7 @@ namespace WordPuzzle
 
             // UI Init.
             CreateScene();
-            lbFunctions.SelectedIndex = 2;
+            lbFunctions.SelectedIndex = 0;
         }
 
         private void SetContainerVisibility()
@@ -493,6 +507,50 @@ namespace WordPuzzle
         private void LbFunctions_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             SetContainerVisibility();
+        }
+
+        private void BtnBeginSolve_Click(object sender, RoutedEventArgs e)
+        {
+            backend.ShuffleDatabase();
+            for (int tsc = 0; tsc < 4; ++tsc)
+            {
+                SuperChar sc = problems[tsc];
+                sc.strokes = new List<Stroke>();
+                for(int nd = 0; nd < sc.descriptors.Count; ++nd)
+                {
+                    TagStroke desc = sc.descriptors[nd];
+                    backend.ClearPuzzleData();
+                    backend.MakePuzzleData(desc);
+                    // Async Needed.
+                    backend.Solve(MainLogic.Solver.NaiveSearch);
+                    Stroke result = backend.GetResult();
+                    sc.strokes.Add(result);
+                    ShowResultOnScene(tsc, nd);
+                    backend.ClearPuzzleData();
+                }
+                backend.ClearUsedIndices();
+            }
+        }
+
+        private void ShowResultOnScene(int tsc, int nd)
+        {
+            Stroke onScene = problems[tsc].strokes[nd];
+            List<Point[]> pts = problems[tsc].descriptors[nd].positions;
+            for(int npt = 0; npt < pts.Count; ++npt)
+            {
+                Point[] versePos = pts[npt];
+                for(int vp = 0; vp < versePos.Length; ++vp)
+                {
+                    int scIdx = (int)versePos[vp].Y * sceneCols + (int)versePos[vp].X;
+                    scene[scIdx].SelfContent = backend.TranslateOnce(onScene.Verses[npt].Content[vp]);
+                }
+            }
+        }
+
+        private void BtnClearBenchmark_Click(object sender, RoutedEventArgs e)
+        {
+            ResetScene();
+            SetBenchmarkScene();
         }
     }
 
