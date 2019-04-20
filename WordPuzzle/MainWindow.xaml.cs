@@ -13,7 +13,6 @@ using System.ComponentModel;
 using System.Data;
 using MaterialDesignThemes.Wpf;
 
-
 namespace WordPuzzle
 {
     /// <summary>
@@ -66,16 +65,59 @@ namespace WordPuzzle
 
             // UI Init.
             CreateScene();
-            lbFunctions.SelectedIndex = 1;
+            lbFunctions.SelectedIndex = 2;
+        }
+
+        private void SetContainerVisibility()
+        {
+            switch(lbFunctions.SelectedIndex)
+            {
+                case 0:
+                    CardBottom0.Visibility = Visibility.Visible;
+                    CardLeft0.Visibility = Visibility.Visible;
+                    //CardBottom1.Visibility = Visibility.Collapsed;
+                    //CardLeft1.Visibility = Visibility.Collapsed;
+                    CardBottom2.Visibility = Visibility.Collapsed;
+                    CardLeft2.Visibility = Visibility.Collapsed;
+                    //CardBottom3.Visibility = Visibility.Collapsed;
+                    //CardLeft3.Visibility = Visibility.Collapsed;
+                    break;
+                case 1:
+                    CardBottom0.Visibility = Visibility.Collapsed;
+                    CardLeft0.Visibility = Visibility.Collapsed;
+                    //CardBottom1.Visibility = Visibility.Collapsed;
+                    //CardLeft1.Visibility = Visibility.Collapsed;
+                    CardBottom2.Visibility = Visibility.Collapsed;
+                    CardLeft2.Visibility = Visibility.Collapsed;
+                    //CardBottom3.Visibility = Visibility.Collapsed;
+                    //CardLeft3.Visibility = Visibility.Collapsed;
+                    break;
+                case 2:
+                    CardBottom0.Visibility = Visibility.Collapsed;
+                    CardLeft0.Visibility = Visibility.Collapsed;
+                    //CardBottom1.Visibility = Visibility.Collapsed;
+                    //CardLeft1.Visibility = Visibility.Collapsed;
+                    CardBottom2.Visibility = Visibility.Visible;
+                    CardLeft2.Visibility = Visibility.Visible;
+                    //CardBottom3.Visibility = Visibility.Collapsed;
+                    //CardLeft3.Visibility = Visibility.Collapsed;
+                    break;
+                case 3:
+                    CardBottom0.Visibility = Visibility.Collapsed;
+                    CardLeft0.Visibility = Visibility.Collapsed;
+                    //CardBottom1.Visibility = Visibility.Collapsed;
+                    //CardLeft1.Visibility = Visibility.Collapsed;
+                    CardBottom2.Visibility = Visibility.Collapsed;
+                    CardLeft2.Visibility = Visibility.Collapsed;
+                    //CardBottom3.Visibility = Visibility.Collapsed;
+                    //CardLeft3.Visibility = Visibility.Collapsed;
+                    break;
+            }
         }
 
         private void PrepareEditProblems()
         {
             // Do initialization work to perform edit.
-
-            // Setting UI Visibility.
-            CardBottom2.Visibility = Visibility.Visible;
-            CardLeft2.Visibility = Visibility.Visible;
 
             // Clear scene and clear binded points.
             selectedCharIdx = 0;
@@ -243,7 +285,7 @@ namespace WordPuzzle
 
         private void SetBenchmarkScene()
         {
-            for(int tsc = 0; tsc < 2; ++tsc)
+            for(int tsc = 0; tsc < 4; ++tsc)
             {
                 SuperChar sc = problems[tsc];
                 for (int t = 0; t < sc.descriptors.Count; ++t)
@@ -265,7 +307,7 @@ namespace WordPuzzle
         }
 
         private void LbiBenchmark_Selected(object sender, RoutedEventArgs e)
-        {
+        { 
             ResetScene();
             SetBenchmarkScene();
         }
@@ -446,6 +488,11 @@ namespace WordPuzzle
             ResetScene();
             UpdateCurrentChar();
             UnsetEdit();
+        }
+
+        private void LbFunctions_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SetContainerVisibility();
         }
     }
 
