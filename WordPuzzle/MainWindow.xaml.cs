@@ -26,7 +26,9 @@ namespace WordPuzzle
         private const int sceneRows = 18;
         private const int sceneCols = 34;
         private List<SuperChar> problems = null;
- 
+        private int[] stepLimits = { -1, 1000000, 2000000, 3000000, 4000000 };
+        private BackgroundWorker worker = null;
+        private bool IsCollating = false;
         private bool IsEditing = false;
         private int selectedCharIdx = -1;
         private int curStroke = -1;
@@ -79,7 +81,7 @@ namespace WordPuzzle
 
             // UI Init.
             CreateScene();
-            lbFunctions.SelectedIndex = 0;
+            lbFunctions.SelectedIndex = 2;
         }
 
         private void SetContainerVisibility()
@@ -292,7 +294,7 @@ namespace WordPuzzle
             for(int i = 0; i < sceneRows * sceneCols; ++i)
             {
                 scene[i].SelfContent = "";
-                scene[i].SelfType = GridPoint.GridPointType.Unset;
+                //scene[i].SelfType = GridPoint.GridPointType.Unset;
                 scene[i].ClearVersePos();
             }
         }
@@ -511,25 +513,61 @@ namespace WordPuzzle
 
         private void BtnBeginSolve_Click(object sender, RoutedEventArgs e)
         {
-            backend.ShuffleDatabase();
+            if(!IsCollating)
+            {
+                IsCollating = true;
+                tblStepInfo.Text = "";
+                SolverParam param = new SolverParam()
+                {
+                    MaxStep = stepLimits[cbMaxSteps.SelectedIndex],
+                    NeedShuffle = (bool)tgShuffle.IsChecked,
+                    Reuse = (bool)tgReuse.IsChecked
+                };
+                worker = new BackgroundWorker();
+                worker.DoWork += SolveCollate;
+                worker.RunWorkerCompleted += WorkDone;
+                worker.RunWorkerAsync(param);
+                
+                lblInfo.Content = "搜索中…";
+            }
+        }
+
+        private void SolveCollate(object sender, DoWorkEventArgs e)
+        {
+            SolverParam param = e.Argument as SolverParam;
+            backend.ClearUsedIndices();
+            if(param.NeedShuffle) backend.ShuffleDatabase();
             for (int tsc = 0; tsc < 4; ++tsc)
             {
                 SuperChar sc = problems[tsc];
                 sc.strokes = new List<Stroke>();
-                for(int nd = 0; nd < sc.descriptors.Count; ++nd)
+                for (int nd = 0; nd < sc.descriptors.Count; ++nd)
                 {
+                    if (param.Reuse) backend.ClearUsedIndices();
                     TagStroke desc = sc.descriptors[nd];
                     backend.ClearPuzzleData();
                     backend.MakePuzzleData(desc);
-                    // Async Needed.
-                    backend.Solve(MainLogic.Solver.NaiveSearch);
-                    Stroke result = backend.GetResult();
-                    sc.strokes.Add(result);
-                    ShowResultOnScene(tsc, nd);
-                    backend.ClearPuzzleData();
+                    uint step = backend.Solve(MainLogic.Solver.NaiveSearch, param);
+                    if (backend.CanGetResult())
+                    {
+                        sc.strokes.Add(backend.GetResult());
+                        ShowResultOnScene(tsc, nd);
+                        Dispatcher.Invoke(new Action<int, int, uint>(PrintSteps), new object[]{tsc, nd, step});
+                    }
                 }
-                backend.ClearUsedIndices();
             }
+        }
+
+        private void WorkDone(object sender, RunWorkerCompletedEventArgs e)
+        {
+            IsCollating = false;
+            lblInfo.Content = "搜索完成";
+        }
+
+        private void PrintSteps(int tsc, int nd, uint step)
+        {
+            string information = string.Format("字{0}连接{1}:{2}步  ", tsc, nd, step);
+            tblStepInfo.Text += information;
         }
 
         private void ShowResultOnScene(int tsc, int nd)
@@ -545,12 +583,18 @@ namespace WordPuzzle
                     scene[scIdx].SelfContent = backend.TranslateOnce(onScene.Verses[npt].Content[vp]);
                 }
             }
+
         }
 
         private void BtnClearBenchmark_Click(object sender, RoutedEventArgs e)
         {
-            ResetScene();
-            SetBenchmarkScene();
+            if(!IsCollating)
+            {
+                ResetScene();
+                SetBenchmarkScene();
+                lblInfo.Content = "";
+                tblStepInfo.Text = "";
+            }
         }
     }
 

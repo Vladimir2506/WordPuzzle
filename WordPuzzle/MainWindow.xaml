@@ -32,7 +32,7 @@
                     <ListBoxItem x:Name="lbiAdjustment" Content="手动指定" HorizontalContentAlignment="Center"/>
                     <ListBoxItem x:Name="lbiEditPuzzles" Content="编辑谜题" HorizontalContentAlignment="Center" Selected="LbiEditPuzzles_Selected"/>
                     <ListBoxItem x:Name="lbiSolveOther" Content="其他谜题" HorizontalContentAlignment="Center"/>
-                    
+
                 </ListBox>
             </materialDesign:Card>
             <materialDesign:ColorZone x:Name="czTitle" Background="{DynamicResource PrimaryHueDarkBrush}" 
@@ -82,6 +82,10 @@
                 x:Name="CardBottom0" Width="1085" Height="90" Margin="0,0,10,14" 
                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
                 materialDesign:ShadowAssist.ShadowDepth="Depth2">
+                <Grid
+                    x:Name="GridCardBottom0">
+                    <TextBlock x:Name="tblStepInfo" Text="" Margin="25,10,25,9.6" TextWrapping="Wrap"/>
+                </Grid>
             </materialDesign:Card>
             <materialDesign:Card 
                 x:Name="CardLeft0" HorizontalAlignment="Left" Margin="10,211.88,0,10" VerticalAlignment="Stretch" 
@@ -92,7 +96,7 @@
                         Margin="25,65,0,0" VerticalAlignment="Top" Width="50" Height="50" Click="BtnClearBenchmark_Click">
                         <materialDesign:PackIcon Kind="Refresh" Width="25" Height="25"/>
                     </Button>
-                    <Label x:Name="lblBenchmarkTitle" Content="测试问题“人工智能”" HorizontalAlignment="Center" Margin="10,10,0,0" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
+                    <Label x:Name="lblBenchmarkTitle" Content="测试问题——人工智能" HorizontalAlignment="Center" Margin="10,10,0,0" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
                     <Button 
                         x:Name="btnBeginSolve" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignFloatingActionButton}"
                         Margin="0,65,25,0" VerticalAlignment="Top" Width="50" Height="50" Click="BtnBeginSolve_Click">
@@ -100,6 +104,25 @@
                     </Button>
                     <Label x:Name="lblCleanBenchmark" Content="清空结果" HorizontalAlignment="Left" Margin="20,135,0,0" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
                     <Label x:Name="lblBeginSolve" Content="开始求解" HorizontalAlignment="Right" Margin="0,135,20,0" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
+                    <ComboBox 
+                        x:Name="cbMaxSteps" HorizontalAlignment="Left" 
+                        Margin="35,219,0,0" VerticalAlignment="Top" Width="120" SelectedIndex="0"
+                        materialDesign:ComboBoxAssist.ShowSelectedItem="True" IsEditable="False"
+                        >
+                        <ComboBoxItem x:Name="NoLimit" Content="无限制"/>
+                        <ComboBoxItem x:Name="Max100K" Content="1000000"/>
+                        <ComboBoxItem x:Name="Max200K" Content="2000000"/>
+                        <ComboBoxItem x:Name="Max300K" Content="3000000"/>
+                        <ComboBoxItem x:Name="Max400K" Content="4000000"/>
+                    </ComboBox>
+                    <ToggleButton x:Name="tgShuffle"
+                        Style="{StaticResource MaterialDesignSwitchToggleButton}" Margin="110,275,25.4,216" />
+                    <Label x:Name="lblShuffle" Content="重新排列词库" Margin="15,275,80.4,216" HorizontalAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="95" />
+                    <Label x:Name="lblMaxSteps" Content="单个连接最大搜索步数" HorizontalAlignment="Left" Margin="20,184,0,0" VerticalAlignment="Top"/>
+                    <Label x:Name="lblInfo" Content="" HorizontalAlignment="Center" Margin="15,0,25.4,126" VerticalAlignment="Bottom" Width="150" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" />
+                    <ToggleButton x:Name="tgReuse"
+                        Style="{StaticResource MaterialDesignSwitchToggleButton}" Margin="110,320,25.4,171" />
+                    <Label x:Name="lblReuse" Content="允许重复诗句" Margin="15,320,80.4,171" HorizontalAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="95" />
                 </Grid>
             </materialDesign:Card>
             <materialDesign:Card 

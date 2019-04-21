@@ -2,10 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.ComponentModel;
 using System.Windows;
 
 namespace WordPuzzle
 {
+    public class SolverParam
+    {
+        public int MaxStep = -1;
+        public bool NeedShuffle = false;
+        public bool Reuse = false;
+    }
+
     public class SuperChar
     {
         public string Name { get; set; }
@@ -111,20 +119,23 @@ namespace WordPuzzle
             }
         }
 
-        public void Solve(Solver solver)
+        public uint Solve(Solver solver, SolverParam param)
         {
+            uint ns = 0;
             switch (solver)
             {
                 case Solver.NaiveSearch:
-                    DoNaiveSearch(puzzleData);
+                    ns = DoNaiveSearch(param);
                     break;
                 default:
                     break;
             }
+            return ns;
         }
-
-        private void DoNaiveSearch(Stroke stroke)
+        private uint DoNaiveSearch(SolverParam param)
         {
+            uint walk = 0;
+            Stroke stroke = puzzleData;
             int nbVerses = stroke.Verses.Count;
             Stack<int> proposal = new Stack<int>(),
                 candidate = new Stack<int>(Enumerable.Reverse(Enumerable.Range(0, nbVerses)));
@@ -149,6 +160,10 @@ namespace WordPuzzle
                 Verse v = new Verse();
                 for (s = 0; s < dictDataMatrices[requiredLength].Count; ++s)
                 {
+                    if(param.MaxStep > 0 && walk > param.MaxStep)
+                    {
+                        return walk;
+                    }
                     // Prevent replicate verses.
                     foundOne = true;
                     if (usedIndices[requiredLength].Contains(s) || curVisisted.Contains(s))
@@ -156,6 +171,7 @@ namespace WordPuzzle
                         foundOne = false;
                         continue;
                     }
+                    ++walk;
                     ushort[] content = dictDataMatrices[requiredLength][s];
                     foreach(int[] a in constraints)
                     {
@@ -198,6 +214,12 @@ namespace WordPuzzle
                 usedIndices[requiredLength].Add(usedIdx);
             }
             stroke.IsCompleted = true;
+            return walk;
+        }
+        
+        public bool CanGetResult()
+        {
+            return puzzleData.IsCompleted;
         }
 
         private bool DoSearch1(Stroke stroke)
