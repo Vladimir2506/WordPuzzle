@@ -31,8 +31,8 @@ namespace WordPuzzle
     {
         public enum Solver
         {
-            NaiveSearch = 0,
-            Method1 = 1
+            BasicSearch = 0,
+            ExtraSearch = 1
         }
         // Singleton.
         private static MainLogic theInstance = null;
@@ -124,15 +124,18 @@ namespace WordPuzzle
             uint ns = 0;
             switch (solver)
             {
-                case Solver.NaiveSearch:
-                    ns = DoNaiveSearch(param);
+                case Solver.BasicSearch:
+                    ns = DoBasicSearch(param);
+                    break;
+                case Solver.ExtraSearch:
+                    ns = DoExtraSearch(param);
                     break;
                 default:
                     break;
             }
             return ns;
         }
-        private uint DoNaiveSearch(SolverParam param)
+        private uint DoBasicSearch(SolverParam param)
         {
             uint walk = 0;
             Stroke stroke = puzzleData;
@@ -222,90 +225,9 @@ namespace WordPuzzle
             return puzzleData.IsCompleted;
         }
 
-        private bool DoSearch1(Stroke stroke)
+        private uint DoExtraSearch(SolverParam param)
         {
-            int nbVerses = stroke.Verses.Count;
-            Stack<int> proposal = new Stack<int>(),
-                candidate = new Stack<int>(Enumerable.Reverse(Enumerable.Range(0, nbVerses)));
-            List<Verse> result = new List<Verse>();
-            Dictionary<int, Stack<int>> visited = new Dictionary<int, Stack<int>>();
-            foreach (int len in usedIndices.Keys)
-            {
-                visited.Add(len, new Stack<int>());
-            }
-            while (candidate.Count > 0)
-            {
-                int curIdx = candidate.Pop();
-                // Existing verses construct the constraints.
-                List<int[]> constraints = stroke.Anchors.FindAll(
-                    a => a[2] == curIdx && proposal.Contains(a[0])
-                    );
-                int requiredLength = stroke.Verses[curIdx].Length;
-                Verse v = new Verse();
-                bool stepDone = false;
-                // Look up in the data.
-                for (int s = 0; s < dictDataMatrices[requiredLength].Count; ++s)
-                {
-                    // Prevent replicate verses.
-                    if (usedIndices[requiredLength].Contains(s)
-                        || visited[requiredLength].Contains(s)) continue;
-                    stepDone = true;
-                    ushort[] content = dictDataMatrices[requiredLength][s];
-                    foreach (int[] a in constraints)
-                    {
-                        // For each search, check the constraints.
-                        ushort trait = content[a[3]],
-                            check = result[a[0]].Content[a[1]];
-                        if (trait != check)
-                        {
-                            stepDone = false;
-                            break;
-                        }
-                    }
-                    if (stepDone)
-                    {
-                        // Success, copy searched to result.
-                        v.Content = content;
-                        v.Length = requiredLength;
-                        visited[requiredLength].Push(s);
-                        break;
-                    }
-                }
-                if (stepDone)
-                {
-                    // Success, to next verse.
-                    proposal.Push(curIdx);
-                    result.Add(v);
-                }
-                else
-                {
-                    // One Step Failure, trace back.
-                    if (proposal.Count == 0) return false; // Trace back to top and failed.
-                    int lastIdx = proposal.Pop();
-                    candidate.Push(curIdx);
-                    candidate.Push(lastIdx);
-                    if (visited[requiredLength].Count > 0)
-                    {
-                        visited[requiredLength].Pop();
-                    }
-                }
-            }
-            // Get result.
-            int ijk = result.Count - 1;
-            while (proposal.Count > 0)
-            {
-                int idx = proposal.Pop();
-                Verse v = result[ijk];
-                ijk--;
-                stroke.Verses[idx].Content = v.Content;
-            }
-            // Update used indices.
-            foreach (int key in visited.Keys)
-            {
-                usedIndices[key].AddRange(visited[key]);
-            }
-            stroke.IsCompleted = true;
-            return true;
+            return 0;
         }
 
         public Stroke GetResult()

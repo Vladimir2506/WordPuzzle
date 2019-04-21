@@ -74,14 +74,14 @@ namespace WordPuzzle
             List<TagStroke> tags = new List<TagStroke>(new TagStroke[] { tag });
             backend.MakePuzzleData(tags);
             backend.ShuffleDatabase();
-            bool b = backend.Solve(MainLogic.Solver.NaiveSearch);
+            bool b = backend.Solve(MainLogic.Solver.BasicSearch);
             Stroke[] result = backend.GetResult();
             string[] resultInChar = backend.Translate(result[0]);
             Console.WriteLine(b);*/
 
             // UI Init.
             CreateScene();
-            lbFunctions.SelectedIndex = 2;
+            lbFunctions.SelectedIndex = 1;
         }
 
         private void SetContainerVisibility()
@@ -91,42 +91,38 @@ namespace WordPuzzle
                 case 0:
                     CardBottom0.Visibility = Visibility.Visible;
                     CardLeft0.Visibility = Visibility.Visible;
-                    //CardBottom1.Visibility = Visibility.Collapsed;
-                    //CardLeft1.Visibility = Visibility.Collapsed;
+                    CardLeft1.Visibility = Visibility.Collapsed;
+                    CardBottom1.Visibility = Visibility.Collapsed;
                     CardBottom2.Visibility = Visibility.Collapsed;
                     CardLeft2.Visibility = Visibility.Collapsed;
-                    //CardBottom3.Visibility = Visibility.Collapsed;
-                    //CardLeft3.Visibility = Visibility.Collapsed;
+                    icContainer.Visibility = Visibility.Visible;
                     break;
                 case 1:
-                    CardBottom0.Visibility = Visibility.Collapsed;
+                    CardBottom0.Visibility = Visibility.Visible;
                     CardLeft0.Visibility = Visibility.Collapsed;
-                    //CardBottom1.Visibility = Visibility.Collapsed;
-                    //CardLeft1.Visibility = Visibility.Collapsed;
+                    CardLeft1.Visibility = Visibility.Visible;
+                    CardBottom1.Visibility = Visibility.Visible;
                     CardBottom2.Visibility = Visibility.Collapsed;
                     CardLeft2.Visibility = Visibility.Collapsed;
-                    //CardBottom3.Visibility = Visibility.Collapsed;
-                    //CardLeft3.Visibility = Visibility.Collapsed;
+                    icContainer.Visibility = Visibility.Collapsed;
                     break;
                 case 2:
                     CardBottom0.Visibility = Visibility.Collapsed;
                     CardLeft0.Visibility = Visibility.Collapsed;
-                    //CardBottom1.Visibility = Visibility.Collapsed;
-                    //CardLeft1.Visibility = Visibility.Collapsed;
+                    CardLeft1.Visibility = Visibility.Collapsed;
+                    CardBottom1.Visibility = Visibility.Collapsed;
                     CardBottom2.Visibility = Visibility.Visible;
                     CardLeft2.Visibility = Visibility.Visible;
-                    //CardBottom3.Visibility = Visibility.Collapsed;
-                    //CardLeft3.Visibility = Visibility.Collapsed;
+                    icContainer.Visibility = Visibility.Visible;
                     break;
                 case 3:
-                    CardBottom0.Visibility = Visibility.Collapsed;
+                    CardBottom0.Visibility = Visibility.Visible;
                     CardLeft0.Visibility = Visibility.Collapsed;
-                    //CardBottom1.Visibility = Visibility.Collapsed;
-                    //CardLeft1.Visibility = Visibility.Collapsed;
+                    CardLeft1.Visibility = Visibility.Collapsed;
+                    CardBottom1.Visibility = Visibility.Collapsed;
                     CardBottom2.Visibility = Visibility.Collapsed;
                     CardLeft2.Visibility = Visibility.Collapsed;
-                    //CardBottom3.Visibility = Visibility.Collapsed;
-                    //CardLeft3.Visibility = Visibility.Collapsed;
+                    icContainer.Visibility = Visibility.Visible;
                     break;
             }
         }
@@ -210,7 +206,7 @@ namespace WordPuzzle
             // Enable
             btnPrevChar.IsEnabled = selectedCharIdx > 0;
             btnNextChar.IsEnabled = selectedCharIdx < problems.Count - 1;
-            btnDelSuperchar.IsEnabled = selectedCharIdx > 0;
+            btnDelSuperchar.IsEnabled = selectedCharIdx > 3;
             pbEdit.IsEnabled = true;
             lbiAdjustment.IsEnabled = true;
             lbiBenchmark.IsEnabled = true;
@@ -294,7 +290,7 @@ namespace WordPuzzle
             for(int i = 0; i < sceneRows * sceneCols; ++i)
             {
                 scene[i].SelfContent = "";
-                //scene[i].SelfType = GridPoint.GridPointType.Unset;
+                scene[i].SelfType = GridPoint.GridPointType.Unset;
                 scene[i].ClearVersePos();
             }
         }
@@ -320,6 +316,8 @@ namespace WordPuzzle
                     }
                 }
             }
+            lblInfo.Content = "";
+            tblStepInfo.Text = "";
         }
 
         private void LbiBenchmark_Selected(object sender, RoutedEventArgs e)
@@ -547,7 +545,7 @@ namespace WordPuzzle
                     TagStroke desc = sc.descriptors[nd];
                     backend.ClearPuzzleData();
                     backend.MakePuzzleData(desc);
-                    uint step = backend.Solve(MainLogic.Solver.NaiveSearch, param);
+                    uint step = backend.Solve(MainLogic.Solver.BasicSearch, param);
                     if (backend.CanGetResult())
                     {
                         sc.strokes.Add(backend.GetResult());
