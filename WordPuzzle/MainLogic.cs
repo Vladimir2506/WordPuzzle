@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.ComponentModel;
 using System.Windows;
 
 namespace WordPuzzle
@@ -12,6 +11,21 @@ namespace WordPuzzle
         public int MaxStep = -1;
         public bool NeedShuffle = false;
         public bool Reuse = false;
+    }
+
+    public class ExtraConstraint
+    {
+        public List<string> extraVerses = null;
+        public List<string> extraAnchors = null;
+
+        public List<ushort> extraA = null;
+        public List<ushort[]> extraV = null;
+
+        public ExtraConstraint(List<string> evs, List<string> eas)
+        {
+            extraVerses = evs;
+            extraAnchors = eas;
+        }
     }
 
     public class SuperChar
@@ -85,6 +99,26 @@ namespace WordPuzzle
             Util.LoadProblemBank(problemBank, fnBank);
         }
 
+        private void ConvertChrShrEx(ExtraConstraint ec)
+        {
+            ec.extraA = new List<ushort>();
+            foreach(string sa in ec.extraAnchors)
+            {
+                ec.extraA.Add(dictChr2Shr[sa[0]]);
+            }
+            ec.extraV = new List<ushort[]>();
+            foreach(string sv in ec.extraVerses)
+            {
+                char[] arr = sv.ToCharArray();
+                ushort[] vs = new ushort[arr.Length];
+                for(int i = 0; i < arr.Length; ++i)
+                {
+                    vs[i] = dictChr2Shr[arr[i]];
+                }
+                ec.extraV.Add(vs);
+            }
+        }
+
         public void MakePuzzleData(TagStroke tag)
         {
             Stroke stroke = new Stroke(tag.nbVerses, tag.nbAnchors);
@@ -138,6 +172,7 @@ namespace WordPuzzle
         private uint DoBasicSearch(SolverParam param)
         {
             uint walk = 0;
+            Random rnd = new Random();
             Stroke stroke = puzzleData;
             int nbVerses = stroke.Verses.Count;
             Stack<int> proposal = new Stack<int>(),
@@ -161,33 +196,51 @@ namespace WordPuzzle
                 // Look up in the data.
                 int s = 0;
                 Verse v = new Verse();
-                for (s = 0; s < dictDataMatrices[requiredLength].Count; ++s)
+                if(curIdx > 0)
                 {
-                    if(param.MaxStep > 0 && walk > param.MaxStep)
+                    for (s = 0; s < dictDataMatrices[requiredLength].Count; ++s)
                     {
-                        return walk;
-                    }
-                    // Prevent replicate verses.
-                    foundOne = true;
-                    if (usedIndices[requiredLength].Contains(s) || curVisisted.Contains(s))
-                    {
-                        foundOne = false;
-                        continue;
-                    }
-                    ++walk;
-                    ushort[] content = dictDataMatrices[requiredLength][s];
-                    foreach(int[] a in constraints)
-                    {
-                        // For each search, check the constraints.
-                        ushort trait = content[a[3]], 
-                            check = result[a[0]].Content[a[1]];
-                        if(trait != check)
+                        if (param.MaxStep > 0 && walk > param.MaxStep)
+                        {
+                            return walk;
+                        }
+                        // Prevent replicate verses.
+                        foundOne = true;
+                        if (usedIndices[requiredLength].Contains(s) || curVisisted.Contains(s))
                         {
                             foundOne = false;
-                            break;
+                            continue;
                         }
+                        ++walk;
+                        ushort[] content = dictDataMatrices[requiredLength][s];
+                        foreach (int[] a in constraints)
+                        {
+                            // For each search, check the constraints.
+                            ushort trait = content[a[3]],
+                                check = result[a[0]].Content[a[1]];
+                            if (trait != check)
+                            {
+                                foundOne = false;
+                                break;
+                            }
+                        }
+                        if (foundOne) break;
                     }
-                    if (foundOne) break;
+                }
+                else
+                {
+                    if(param.NeedShuffle)
+                    {
+                        do
+                        {
+                            s = rnd.Next(dictDataMatrices[requiredLength].Count);
+                        } while (curVisisted.Contains(s));
+                    }
+                    else
+                    {
+                        if (curVisisted.Count == 0) s = 0;
+                        else s = curVisisted[curVisisted.Count - 1] + 1;
+                    }
                 }
                 if(foundOne)
                 {

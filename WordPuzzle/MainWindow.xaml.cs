@@ -37,11 +37,29 @@ namespace WordPuzzle
         private List<Point> ptsEdt = null;
         private DataTable table1 = null;
         private DataTable table2 = null;
+        private TagStroke extraDesc = null;
+        private int selectedStrokeIdx = -1;
+        private List<int[]> StrokeTable = null;
+        private DataTable table3 = null;
+        private DataTable table4 = null;
+        private ExtraConstraint extraConstraint = null;
 
         public MainWindow()
         {
             InitializeComponent();
             backend = MainLogic.GetInstance();
+            StrokeTable = new List<int[]>()
+            {
+                new int[]{0, 0},
+                new int[]{1, 0},
+                new int[]{2, 0},
+                new int[]{2, 1},
+                new int[]{2, 2},
+                new int[]{3, 0},
+                new int[]{3, 1},
+                new int[]{3, 2},
+                new int[]{3, 3}
+            };
         }
 
         private void Backbone_Loaded(object sender, RoutedEventArgs e)
@@ -534,7 +552,7 @@ namespace WordPuzzle
         {
             SolverParam param = e.Argument as SolverParam;
             backend.ClearUsedIndices();
-            if(param.NeedShuffle) backend.ShuffleDatabase();
+            //if(param.NeedShuffle) backend.ShuffleDatabase();
             for (int tsc = 0; tsc < 4; ++tsc)
             {
                 SuperChar sc = problems[tsc];
@@ -594,6 +612,108 @@ namespace WordPuzzle
                 tblStepInfo.Text = "";
             }
         }
+
+        private void LbiAdjustment_Selected(object sender, RoutedEventArgs e)
+        {
+            selectedStrokeIdx = 0;
+            SetExtraButtonsEnabled();
+            ClearExtraResults();
+            PrepareExtraProblems();
+        }
+
+        private void SetExtraButtonsEnabled()
+        {
+            btnExtraLeft.IsEnabled = selectedStrokeIdx > 0;
+            btnExtraRight.IsEnabled = selectedStrokeIdx < 8;
+        }
+
+        private void ClearExtraResults()
+        {
+            tblResultA.Text = "";
+            tblResultV.Text = "";
+            lblExtraProg.Content = "";
+            tblStepInfo.Text = "";
+        }
+
+        private void PrepareExtraProblems()
+        {
+            TagStroke desc = problems[StrokeTable[selectedStrokeIdx][0]].descriptors[StrokeTable[selectedStrokeIdx][1]];
+            table3 = new DataTable();
+            table4 = new DataTable();
+            SetExtraTable(table3, table4, desc);
+            dgExtraA.ItemsSource = table3.DefaultView;
+            dgExtraV.ItemsSource = table4.DefaultView;
+        }
+
+        private void SetExtraTable(DataTable tb3, DataTable tb4, TagStroke stk)
+        {
+            tb3.Columns.Add("VSIdxEx", typeof(int));
+            tb3.Columns.Add("CSIdxEx", typeof(int));
+            tb3.Columns.Add("VEIdxEx", typeof(int));
+            tb3.Columns.Add("CEIdxEx", typeof(int));
+            tb3.Columns.Add("AnchorCharEx", typeof(string));
+            foreach(int[] ancs in stk.Anchors)
+            {
+                DataRow row = tb3.NewRow();
+                row["VSIdxEx"] = ancs[0];
+                row["CSIdxEx"] = ancs[1];
+                row["VEIdxEx"] = ancs[2];
+                row["CEIdxEx"] = ancs[3];
+                row["AnchorCharEx"] = "";
+                tb3.Rows.Add(row);
+            }
+            tb4.Columns.Add("VerseIdxEx", typeof(int));
+            tb4.Columns.Add("VerseLenEx", typeof(int));
+            tb4.Columns.Add("VerseTextEx", typeof(string));
+            int c = 0;
+            foreach (int len in stk.LenVerses)
+            {
+                DataRow row = tb4.NewRow();
+                row["VerseIdxEx"] = c;
+                row["VerseLenEx"] = len;
+                row["VerseTextEx"] = "";
+                tb4.Rows.Add(row);
+                ++c;
+            }
+        }
+
+        private ExtraConstraint GetExtraTable(DataTable tb3, DataTable tb4, TagStroke tag)
+        {
+            List<string> extraAnchorInString = new List<string>(), extraVerseInString = new List<string>();
+            tag.nbAnchors = tb3.Rows.Count;
+            foreach(DataRow row in tb3.Rows)
+            {
+                int a0 = (int)row["VSIdxEx"], a1 = (int)row["CSIdxEx"], a2 = (int)row["VEIdxEx"], a3 = (int)row["CEIdxEx"];
+                tag.Anchors.Add(new int[] { a0, a1, a2, a3 });
+                extraAnchorInString.Add((string)row["AnchorCharEx"]);
+            }
+            tag.nbVerses = tb4.Rows.Count;
+            foreach(DataRow row in tb4.Rows)
+            {
+                int len = (int)row["VerseLenEx"];
+                string s = (string)row["VerseTextEx"];
+                tag.LenVerses.Add(len);
+                extraVerseInString.Add(s);
+            }
+            ExtraConstraint exc = new ExtraConstraint(extraVerseInString, extraAnchorInString);
+            return exc;
+        }
+
+        private void BtnExtraLeft_Click(object sender, RoutedEventArgs e)
+        {
+            selectedStrokeIdx -= 1;
+            SetExtraButtonsEnabled();
+            ClearExtraResults();
+            PrepareExtraProblems();
+        }
+
+        private void BtnExtraRight_Click(object sender, RoutedEventArgs e)
+        {
+            selectedStrokeIdx += 1;
+            SetExtraButtonsEnabled();
+            ClearExtraResults();
+            PrepareExtraProblems();
+        }
     }
 
     public class GridPoint : INotifyPropertyChanged
@@ -642,14 +762,12 @@ namespace WordPuzzle
         {
             versePos.Clear();
         }
-        #region implement property changed 
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-        #endregion
     }
 
     public class GridPointConverter : IValueConverter
