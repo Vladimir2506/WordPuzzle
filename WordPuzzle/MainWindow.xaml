@@ -71,8 +71,9 @@
                          Foreground="{DynamicResource WhiteWhite}" Width="35" Height="35" VerticalAlignment="Center">
                         <ListBox x:Name="lbMenu" Width="100" 
                         TextElement.Foreground="{StaticResource MaterialDesignBody}" >
-                            <ListBoxItem x:Name="lbiAbout" Content="关于" HorizontalContentAlignment="Center" 
-                                         Selected="LbiAbout_Selected"/>
+                            <ListBoxItem 
+                                x:Name="lbiAbout" Content="关于" HorizontalContentAlignment="Center" 
+                                PreviewMouseLeftButtonDown="LbiAbout_PreviewMouseLeftButtonDown"/>
                             <ListBoxItem x:Name="lbiQuit" Content="退出" HorizontalContentAlignment="Center" 
                                      PreviewMouseLeftButtonDown="LbiQuit_PreviewMouseLeftButtonDown" />
                         </ListBox>
@@ -175,7 +176,7 @@
                         HorizontalAlignment="Right" Click="BtnNextChar_Click">
                         <materialDesign:PackIcon Kind="KeyboardArrowRight" Width="25" Height="25" />
                     </Button>
-                    <Label x:Name="lblStroke" Content="笔划" HorizontalAlignment="Left" Margin="10,119,0,0" VerticalAlignment="Top"/>
+                    <Label x:Name="lblStroke" Content="笔画" HorizontalAlignment="Left" Margin="10,119,0,0" VerticalAlignment="Top"/>
                     <DataGrid 
                         x:Name="dgStrokes" HorizontalAlignment="Left" Height="100" 
                         VerticalAlignment="Top" Width="170" Margin="10,154,0,0"

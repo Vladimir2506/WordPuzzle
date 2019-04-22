@@ -52,12 +52,13 @@ namespace WordPuzzle
         private static MainLogic theInstance = null;
         // Data members.
         private Dictionary<char, ushort> dictChr2Shr = null;
-        private Dictionary<ushort, char> dictShr2Chr = null;
-        private Dictionary<int, List<string>> dictWordData = null;
+        private readonly Dictionary<ushort, char> dictShr2Chr = null;
+        private readonly Dictionary<int, List<string>> dictWordData = null;
         private Dictionary<int, List<ushort[]>> dictDataMatrices = null;
         private Dictionary<int, List<int>> usedIndices = null;
         public List<SuperChar> problemBank = null;
         private Stroke puzzleData = null;
+        private Random rnd = null;
 
         private MainLogic()
         {
@@ -67,6 +68,7 @@ namespace WordPuzzle
             dictDataMatrices = new Dictionary<int, List<ushort[]>>();
             usedIndices = new Dictionary<int, List<int>>();
             problemBank = new List<SuperChar>();
+            rnd = new Random();
         }
 
         public static MainLogic GetInstance()
@@ -156,8 +158,10 @@ namespace WordPuzzle
             Stroke stroke = new Stroke(tag.nbVerses, tag.nbAnchors);
             for (int i = 0; i < tag.nbVerses; ++i)
             {
-                stroke.Verses[i] = new Verse(tag.LenVerses[i]);
-                stroke.Verses[i].Content = ecc.extraV[i];
+                stroke.Verses[i] = new Verse(tag.LenVerses[i])
+                {
+                    Content = ecc.extraV[i]
+                };
             }
             for (int i = 0; i < tag.nbAnchors; ++i)
             {
@@ -236,7 +240,7 @@ namespace WordPuzzle
         private uint DoBasicSearch(SolverParam param)
         {
             uint walk = 0;
-            Random rnd = new Random();
+            
             Stroke stroke = puzzleData;
             int nbVerses = stroke.Verses.Count;
             Stack<int> proposal = new Stack<int>(),

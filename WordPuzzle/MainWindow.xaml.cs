@@ -1,18 +1,18 @@
-﻿using System;
+﻿using MaterialDesignThemes.Wpf;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using System.ComponentModel;
-using System.Data;
-using MaterialDesignThemes.Wpf;
-using System.Windows.Documents;
 
 namespace WordPuzzle
 {
@@ -70,7 +70,7 @@ namespace WordPuzzle
                 "连接1：“工”字",
                 "连接2：“智”字左上部分",
                 "连接3：“智”字右上部分",
-                "连接4：“能”字下部分",
+                "连接4：“智”字下部分",
                 "连接5：“能”字左上部分",
                 "连接6：“能”字左下部分",
                 "连接7：“能”字右上部分",
@@ -362,6 +362,7 @@ namespace WordPuzzle
 
         private void LbiEditPuzzles_Selected(object sender, RoutedEventArgs e)
         {
+            lblCurrentTips.Content = "";
             PrepareEditProblems();
         }
 
@@ -372,6 +373,7 @@ namespace WordPuzzle
 
         private void BtnAddSuperchar_Click(object sender, RoutedEventArgs e)
         {
+            lblCurrentTips.Content = "";
             problems.Add(new SuperChar());
             selectedCharIdx = problems.Count - 1;
             problems[selectedCharIdx].descriptors.Add(new TagStroke());
@@ -509,6 +511,7 @@ namespace WordPuzzle
 
         private void BtnDelSuperchar_Click(object sender, RoutedEventArgs e)
         {
+            lblCurrentTips.Content = "";
             int delCharIdx = selectedCharIdx;
             selectedCharIdx -= 1;
             ResetScene();
@@ -520,6 +523,7 @@ namespace WordPuzzle
         private void BtnNextChar_Click(object sender, RoutedEventArgs e)
         {
             selectedCharIdx += 1;
+            lblCurrentTips.Content = "";
             ResetScene();
             UpdateCurrentChar();
             UnsetEdit();
@@ -528,6 +532,7 @@ namespace WordPuzzle
         private void BtnPrevChar_Click(object sender, RoutedEventArgs e)
         {
             selectedCharIdx -= 1;
+            lblCurrentTips.Content = "";
             ResetScene();
             UpdateCurrentChar();
             UnsetEdit();
@@ -792,6 +797,7 @@ namespace WordPuzzle
 
         private void BtnExtraSearch_Click(object sender, RoutedEventArgs e)
         {
+            ClearExtraResults();
             bool CanSearch = CollectEx();
             if(CanSearch)
             {
@@ -920,14 +926,16 @@ namespace WordPuzzle
             tblStepInfo.Text = "";
         }
 
-        private void LbiAbout_Selected(object sender, RoutedEventArgs e)
-        {
-            dlgAbout.IsOpen = true;
-        }
+        
 
         private void BtnAccept_Click(object sender, RoutedEventArgs e)
         {
             dlgAbout.IsOpen = false;
+        }
+
+        private void LbiAbout_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            dlgAbout.IsOpen = true;
         }
     }
 
