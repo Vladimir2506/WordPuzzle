@@ -12,6 +12,7 @@ using System.Windows.Threading;
 using System.ComponentModel;
 using System.Data;
 using MaterialDesignThemes.Wpf;
+using System.Windows.Documents;
 
 namespace WordPuzzle
 {
@@ -40,9 +41,12 @@ namespace WordPuzzle
         private TagStroke extraDesc = null;
         private int selectedStrokeIdx = -1;
         private List<int[]> StrokeTable = null;
+        private List<string> ExNameTable = null;
         private DataTable table3 = null;
         private DataTable table4 = null;
         private ExtraConstraint extraConstraint = null;
+        private bool IsExtraCollating = false;
+        private bool IsDoingOther = false;
 
         public MainWindow()
         {
@@ -60,6 +64,18 @@ namespace WordPuzzle
                 new int[]{3, 2},
                 new int[]{3, 3}
             };
+            ExNameTable = new List<string>()
+            {
+                "连接0：“人”字",
+                "连接1：“工”字",
+                "连接2：“智”字左上部分",
+                "连接3：“智”字右上部分",
+                "连接4：“能”字下部分",
+                "连接5：“能”字左上部分",
+                "连接6：“能”字左下部分",
+                "连接7：“能”字右上部分",
+                "连接8：“能”字右下部分"
+            };
         }
 
         private void Backbone_Loaded(object sender, RoutedEventArgs e)
@@ -68,42 +84,15 @@ namespace WordPuzzle
             backend.LoadData(".\\THUOCL_poem.txt", ".\\LUT.txt");
             backend.LoadBank(".\\BANK.txt");
             problems = backend.problemBank;
-            /*TagStroke tag1 = new TagStroke()
-            {
-                nbVerses = 4,
-                nbAnchors = 5,
-                LenVerses = new List<int>(){ 5,9,5,5 },
-                Anchors = new List<int[]>{ new int[]{0,0,1,0}, new int[] { 0,2,2,0}, new int[] { 0,4,3,0}, new int[] { 1,6,2,4}, new int[] { 1,8,3,4} }
-            };*/
-            /*TagStroke tag = new TagStroke()
-            {
-                nbVerses = 4,
-                nbAnchors = 5,
-                LenVerses = new List<int>() { 7, 12, 5, 5 },
-                Anchors = new List<int[]> { new int[] { 0, 0, 1, 0 }, new int[] { 0, 2, 2, 0 }, new int[] { 0, 4, 3, 0 }, new int[] { 1, 6, 2, 4 }, new int[] { 1, 8, 3, 4 } }
-            };*/
-            /*TagStroke tag = new TagStroke()
-            {
-                nbVerses = 2,
-                nbAnchors = 1,
-                LenVerses = new List<int>() { 8,5 },
-                Anchors = new List<int[]> { new int[] { 0, 2, 1, 4 } }
-            };
-            List<TagStroke> tags = new List<TagStroke>(new TagStroke[] { tag });
-            backend.MakePuzzleData(tags);
-            backend.ShuffleDatabase();
-            bool b = backend.Solve(MainLogic.Solver.BasicSearch);
-            Stroke[] result = backend.GetResult();
-            string[] resultInChar = backend.Translate(result[0]);
-            Console.WriteLine(b);*/
 
             // UI Init.
             CreateScene();
-            lbFunctions.SelectedIndex = 1;
+            lbFunctions.SelectedIndex = 0;
         }
 
         private void SetContainerVisibility()
         {
+            IsDoingOther = false;
             switch(lbFunctions.SelectedIndex)
             {
                 case 0:
@@ -135,12 +124,13 @@ namespace WordPuzzle
                     break;
                 case 3:
                     CardBottom0.Visibility = Visibility.Visible;
-                    CardLeft0.Visibility = Visibility.Collapsed;
+                    CardLeft0.Visibility = Visibility.Visible;
                     CardLeft1.Visibility = Visibility.Collapsed;
                     CardBottom1.Visibility = Visibility.Collapsed;
                     CardBottom2.Visibility = Visibility.Collapsed;
                     CardLeft2.Visibility = Visibility.Collapsed;
                     icContainer.Visibility = Visibility.Visible;
+                    IsDoingOther = true;
                     break;
             }
         }
@@ -192,6 +182,22 @@ namespace WordPuzzle
             PrepareTables(table1, table2);
             dgStrokes.ItemsSource = table1.DefaultView;
             dgAnchor.ItemsSource = table2.DefaultView;
+        }
+
+        private void SetCollating()
+        {
+            lbiAdjustment.IsEnabled = false;
+            lbiBenchmark.IsEnabled = false;
+            lbiSolveOther.IsEnabled = false;
+            lbiEditPuzzles.IsEnabled = false;
+        }
+
+        private void UnsetCollating()
+        {
+            lbiAdjustment.IsEnabled = true;
+            lbiBenchmark.IsEnabled = true;
+            lbiSolveOther.IsEnabled = true;
+            lbiEditPuzzles.IsEnabled = true;
         }
 
         private void SetEdit()
@@ -341,6 +347,11 @@ namespace WordPuzzle
         private void LbiBenchmark_Selected(object sender, RoutedEventArgs e)
         { 
             ResetScene();
+            lblBenchmarkTitle.Content = "测试问题——人工智能";
+            btnPrevSuperChar.Visibility = Visibility.Collapsed;
+            btnNextSuperChar.Visibility = Visibility.Collapsed;
+            lblInfo.Content = "";
+            tblStepInfo.Text = "";
             SetBenchmarkScene();
         }
 
@@ -543,7 +554,7 @@ namespace WordPuzzle
                 worker.DoWork += SolveCollate;
                 worker.RunWorkerCompleted += WorkDone;
                 worker.RunWorkerAsync(param);
-                
+                SetCollating();
                 lblInfo.Content = "搜索中…";
             }
         }
@@ -552,32 +563,54 @@ namespace WordPuzzle
         {
             SolverParam param = e.Argument as SolverParam;
             backend.ClearUsedIndices();
-            //if(param.NeedShuffle) backend.ShuffleDatabase();
-            for (int tsc = 0; tsc < 4; ++tsc)
+            if (IsDoingOther)
             {
-                SuperChar sc = problems[tsc];
-                sc.strokes = new List<Stroke>();
+                SuperChar sc = problems[selectedCharIdx];
+                if (param.Reuse) backend.ClearUsedIndices();
                 for (int nd = 0; nd < sc.descriptors.Count; ++nd)
                 {
-                    if (param.Reuse) backend.ClearUsedIndices();
                     TagStroke desc = sc.descriptors[nd];
                     backend.ClearPuzzleData();
                     backend.MakePuzzleData(desc);
                     uint step = backend.Solve(MainLogic.Solver.BasicSearch, param);
-                    if (backend.CanGetResult())
+                    sc.strokes.Add(backend.GetResult());
+                    if (backend.SearchSuccess())
                     {
+                        ShowResultOnScene(selectedCharIdx, nd);
+                    }
+                    Dispatcher.Invoke(new Action<int, int, uint>(PrintSteps), new object[] { selectedCharIdx, nd, step });
+                }
+            }
+            else
+            {
+                for (int tsc = 0; tsc < 4; ++tsc)
+                {
+                    SuperChar sc = problems[tsc];
+                    sc.strokes = new List<Stroke>();
+                    for (int nd = 0; nd < sc.descriptors.Count; ++nd)
+                    {
+                        if (param.Reuse) backend.ClearUsedIndices();
+                        TagStroke desc = sc.descriptors[nd];
+                        backend.ClearPuzzleData();
+                        backend.MakePuzzleData(desc);
+                        uint step = backend.Solve(MainLogic.Solver.BasicSearch, param);
                         sc.strokes.Add(backend.GetResult());
-                        ShowResultOnScene(tsc, nd);
-                        Dispatcher.Invoke(new Action<int, int, uint>(PrintSteps), new object[]{tsc, nd, step});
+                        if (backend.SearchSuccess())
+                        {
+                            ShowResultOnScene(tsc, nd);
+                        }
+                        Dispatcher.Invoke(new Action<int, int, uint>(PrintSteps), new object[] { tsc, nd, step });
                     }
                 }
             }
+            
         }
 
         private void WorkDone(object sender, RunWorkerCompletedEventArgs e)
         {
             IsCollating = false;
-            lblInfo.Content = "搜索完成";
+            UnsetCollating();
+            lblInfo.Content = "搜索完成。";
         }
 
         private void PrintSteps(int tsc, int nd, uint step)
@@ -607,7 +640,14 @@ namespace WordPuzzle
             if(!IsCollating)
             {
                 ResetScene();
-                SetBenchmarkScene();
+                if(lbFunctions.SelectedIndex == 0)
+                {
+                    SetBenchmarkScene();
+                }
+                if(lbFunctions.SelectedIndex == 3)
+                {
+                    ShowOtherSuperChar();
+                }
                 lblInfo.Content = "";
                 tblStepInfo.Text = "";
             }
@@ -643,6 +683,7 @@ namespace WordPuzzle
             SetExtraTable(table3, table4, desc);
             dgExtraA.ItemsSource = table3.DefaultView;
             dgExtraV.ItemsSource = table4.DefaultView;
+            lblCurrentExtra.Content = ExNameTable[selectedStrokeIdx];
         }
 
         private void SetExtraTable(DataTable tb3, DataTable tb4, TagStroke stk)
@@ -713,6 +754,180 @@ namespace WordPuzzle
             SetExtraButtonsEnabled();
             ClearExtraResults();
             PrepareExtraProblems();
+        }
+
+        private bool CollectEx()
+        {
+            extraDesc = new TagStroke();
+            extraConstraint = GetExtraTable(table3, table4, extraDesc);
+            int[] lens = extraDesc.LenVerses.ToArray();
+            for(int k = 0; k < extraDesc.Anchors.Count; ++k)
+            {
+                int[] a = extraDesc.Anchors[k];
+                int ivs = a[0], ics = a[1], ive = a[2], ice = a[3];
+                if(ics < 0 || ics >= lens[ivs] || ice < 0 || ice >= lens[ive])
+                {
+                    return false;
+                }
+                if (ivs >= ive)
+                {
+                    return false;
+                }
+            }
+            for(int k = 0; k < extraConstraint.extraVerses.Count; ++k)
+            {
+                if(extraConstraint.extraVerses[k].Length != lens[k] && extraConstraint.extraVerses[k].Length > 0)
+                {
+                    return false;
+                }
+            }
+            return backend.ConvertChrShrEx(extraConstraint);
+        }
+
+        private void BtnExtraClear_Click(object sender, RoutedEventArgs e)
+        {
+            backend.ClearUsedIndices();
+            ClearExtraResults();
+        }
+
+        private void BtnExtraSearch_Click(object sender, RoutedEventArgs e)
+        {
+            bool CanSearch = CollectEx();
+            if(CanSearch)
+            {
+                if (!IsExtraCollating)
+                {
+                    IsExtraCollating = true;
+                    tblStepInfo.Text = "";
+                    SolverParam param = new SolverParam()
+                    {
+                        MaxStep = stepLimits[cbMaxStepEx.SelectedIndex],
+                        NeedShuffle = (bool)tgRandomInitEx.IsChecked,
+                        Reuse = false
+                    };
+                    worker = new BackgroundWorker();
+                    worker.DoWork += SearchExCollate;
+                    worker.RunWorkerCompleted += SearchExDone;
+                    worker.RunWorkerAsync(param);
+                    SetCollating();
+                    lblExtraProg.Content = "搜索中…";
+                }
+            }
+            else
+            {
+                lblExtraProg.Content = "约束非法。";
+            }
+        }
+
+        private void SearchExCollate(object sender, DoWorkEventArgs e)
+        {
+            SolverParam param = e.Argument as SolverParam;
+            if(param.NeedShuffle) backend.ClearUsedIndices();
+            backend.ClearPuzzleData();
+            backend.MakePuzzleDataEx(extraDesc, extraConstraint);
+            uint step = backend.Solve(MainLogic.Solver.ExtraSearch, param);
+            Dispatcher.Invoke(
+                new Action<int, int, uint>(PrintSteps), 
+                new object[] { StrokeTable[selectedStrokeIdx][0], StrokeTable[selectedStrokeIdx][1], step }
+                );
+            Stroke stroke = backend.GetResult();
+            bool success = backend.SearchSuccess();
+            Dispatcher.Invoke(new Action<bool, Stroke>(ShowExtraResult), new object[] { success, stroke });
+        }
+
+        private void SearchExDone(object sender, RunWorkerCompletedEventArgs e)
+        {
+            IsExtraCollating = false;
+            UnsetCollating();
+            lblExtraProg.Content = "搜索完成。";
+        }
+
+        private void ShowExtraResult(bool isSuccess, Stroke stroke)
+        {
+            tblResultV.Inlines.Clear();
+            tblResultA.Inlines.Clear();
+            if (!isSuccess)
+            {
+                lblExtraProg.Content = "无解。";
+                return;
+            }
+            string[] verses = backend.Translate(stroke);
+            for(int k = 0; k < stroke.Verses.Count; ++k)
+            {
+                tblResultV.Inlines.Add(new Run(string.Format("句{0}:{1}", k, verses[k])));
+                tblResultV.Inlines.Add(new LineBreak());
+            }
+            for(int k = 0; k < stroke.Anchors.Count; ++k)
+            {
+                int a0 = stroke.Anchors[k][0], a1 = stroke.Anchors[k][1];
+                string ax = verses[a0][a1].ToString();
+                tblResultA.Inlines.Add(new Run(string.Format("交叉点{0}:{1}", k, ax)));
+                tblResultA.Inlines.Add(new LineBreak());
+            }
+        }
+
+        private void LbiSolveOther_Selected(object sender, RoutedEventArgs e)
+        {
+            selectedCharIdx = 0;
+            lblBenchmarkTitle.Content = "其他谜题——" + problems[selectedCharIdx].Name;
+            btnPrevSuperChar.Visibility = Visibility.Visible;
+            btnNextSuperChar.Visibility = Visibility.Visible;
+            SetPrevNextSuperCharEnable();
+            ShowOtherSuperChar();
+        }
+
+        private void SetPrevNextSuperCharEnable()
+        {
+            btnPrevSuperChar.IsEnabled = selectedCharIdx > 0;
+            btnNextSuperChar.IsEnabled = selectedCharIdx < problems.Count - 1;
+        }
+
+        private void BtnPrevSuperChar_Click(object sender, RoutedEventArgs e)
+        {
+            selectedCharIdx -= 1;
+            SetPrevNextSuperCharEnable();
+            ShowOtherSuperChar();
+            lblBenchmarkTitle.Content = "其他谜题——" + problems[selectedCharIdx].Name;
+        }
+
+        private void BtnNextSuperChar_Click(object sender, RoutedEventArgs e)
+        {
+            selectedCharIdx += 1;
+            SetPrevNextSuperCharEnable();
+            ShowOtherSuperChar();
+            lblBenchmarkTitle.Content = "其他谜题——" + problems[selectedCharIdx].Name;
+        }
+
+        private void ShowOtherSuperChar()
+        {
+            ResetScene();
+            SuperChar selected = problems[selectedCharIdx];
+            for (int t = 0; t < selected.descriptors.Count; ++t)
+            {
+                TagStroke descriptor = selected.descriptors[t];
+                for (int i = 0; i < descriptor.positions.Count; ++i)
+                {
+                    for (int j = 0; j < descriptor.positions[i].Length; ++j)
+                    {
+                        Point pt = descriptor.positions[i][j];
+                        int sceneIdx = (int)pt.Y * sceneCols + (int)pt.X;
+                        scene[sceneIdx].SelfType = GridPoint.GridPointType.Assigned;
+                        scene[sceneIdx].AddVersePos(selectedCharIdx, t, i, j);
+                    }
+                }
+            }
+            lblInfo.Content = "";
+            tblStepInfo.Text = "";
+        }
+
+        private void LbiAbout_Selected(object sender, RoutedEventArgs e)
+        {
+            dlgAbout.IsOpen = true;
+        }
+
+        private void BtnAccept_Click(object sender, RoutedEventArgs e)
+        {
+            dlgAbout.IsOpen = false;
         }
     }
 
@@ -801,6 +1016,5 @@ namespace WordPuzzle
             throw new NotImplementedException();
         }
     }
-
     
 }

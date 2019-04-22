@@ -99,24 +99,88 @@ namespace WordPuzzle
             Util.LoadProblemBank(problemBank, fnBank);
         }
 
-        private void ConvertChrShrEx(ExtraConstraint ec)
+        public bool ConvertChrShrEx(ExtraConstraint ec)
         {
             ec.extraA = new List<ushort>();
             foreach(string sa in ec.extraAnchors)
             {
-                ec.extraA.Add(dictChr2Shr[sa[0]]);
+                if(sa.Length == 0)
+                {
+                    ec.extraA.Add(0xFF);
+                }
+                else
+                {
+                    if (!dictChr2Shr.Keys.Contains(sa[0])) return false;
+                    ec.extraA.Add(dictChr2Shr[sa[0]]);
+                }
             }
             ec.extraV = new List<ushort[]>();
             foreach(string sv in ec.extraVerses)
             {
-                char[] arr = sv.ToCharArray();
-                ushort[] vs = new ushort[arr.Length];
-                for(int i = 0; i < arr.Length; ++i)
+                if(sv.Length == 0)
                 {
-                    vs[i] = dictChr2Shr[arr[i]];
+                    ec.extraV.Add(new ushort[] { 0xFF });
                 }
-                ec.extraV.Add(vs);
+                else
+                {
+                    char[] arr = sv.ToCharArray();
+                    ushort[] vs = new ushort[arr.Length];
+                    for (int i = 0; i < arr.Length; ++i)
+                    {
+                        if (!dictChr2Shr.Keys.Contains(arr[i])) return false;
+                        vs[i] = dictChr2Shr[arr[i]];
+                    }
+                    int checkExist = dictDataMatrices[arr.Length].FindIndex(
+                        (x)  => 
+                        {
+                            bool found = true;
+                            for (int i = 0; i < arr.Length; ++i)
+                            {
+                                if(x[i] != vs[i])
+                                {
+                                    found = false;
+                                    break;
+                                }
+                            }
+                            return found;
+                        });
+                    if (checkExist < 0) return false;
+                    ec.extraV.Add(vs);
+                }
             }
+            return true;
+        }
+
+        public void MakePuzzleDataEx(TagStroke tag, ExtraConstraint ecc)
+        {
+            Stroke stroke = new Stroke(tag.nbVerses, tag.nbAnchors);
+            for (int i = 0; i < tag.nbVerses; ++i)
+            {
+                stroke.Verses[i] = new Verse(tag.LenVerses[i]);
+                stroke.Verses[i].Content = ecc.extraV[i];
+            }
+            for (int i = 0; i < tag.nbAnchors; ++i)
+            {
+                stroke.Anchors[i] = new int[5];
+            }
+            for (int i = 0; i < tag.nbAnchors; ++i)
+            {
+                stroke.Anchors[i][0] = tag.Anchors[i][0];
+                stroke.Anchors[i][1] = tag.Anchors[i][1];
+                stroke.Anchors[i][2] = tag.Anchors[i][2];
+                stroke.Anchors[i][3] = tag.Anchors[i][3];
+                stroke.Anchors[i][4] = ecc.extraA[i];
+                if (stroke.Verses[stroke.Anchors[i][0]].Content[0] != 0xFF)
+                {
+                    stroke.Anchors[i][4] = stroke.Verses[stroke.Anchors[i][0]].Content[stroke.Anchors[i][1]];
+                }
+                if (stroke.Verses[stroke.Anchors[i][2]].Content[0] != 0xFF)
+                {
+                    stroke.Anchors[i][4] = stroke.Verses[stroke.Anchors[i][2]].Content[stroke.Anchors[i][3]];
+                }
+            }
+            puzzleData = stroke;
+            
         }
 
         public void MakePuzzleData(TagStroke tag)
@@ -267,20 +331,145 @@ namespace WordPuzzle
             {
                 int requiredLength = stroke.Verses[i].Length;
                 int usedIdx = visited[i][visited[i].Count - 1];
-                usedIndices[requiredLength].Add(usedIdx);
+                if(!param.Reuse) usedIndices[requiredLength].Add(usedIdx);
             }
             stroke.IsCompleted = true;
             return walk;
         }
         
-        public bool CanGetResult()
+        public bool SearchSuccess()
         {
             return puzzleData.IsCompleted;
         }
 
         private uint DoExtraSearch(SolverParam param)
         {
-            return 0;
+            uint walk = 0;
+            Random rnd = new Random();
+            Stroke stroke = puzzleData;
+
+            int nbVerses = stroke.Verses.Count;
+            Stack<int> proposal = new Stack<int>(),
+                candidate = new Stack<int>(Enumerable.Reverse(Enumerable.Range(0, nbVerses)));
+            List<Verse> result = new List<Verse>();
+            List<int>[] visited = new List<int>[nbVerses];
+            for (int vv = 0; vv < nbVerses; ++vv)
+            {
+                visited[vv] = new List<int>();
+            }
+            while (candidate.Count > 0)
+            {
+                int curIdx = candidate.Pop();
+                List<int> curVisisted = visited[curIdx];
+                // Existing verses construct the constraints.
+                List<int[]> constraints = stroke.Anchors;
+                int requiredLength = stroke.Verses[curIdx].Length;
+                bool foundOne = true;
+                // Look up in the data.
+                int s = 0;
+                Verse v = new Verse();
+                if (stroke.Verses[curIdx].Content[0] != 0xFF)
+                {
+                    // Fixed verse.
+                    s = dictDataMatrices[requiredLength].FindIndex(
+                        (x) =>
+                        {
+                            bool found = true;
+                            for (int i = 0; i < requiredLength; ++i)
+                            {
+                                if(x[i] != stroke.Verses[curIdx].Content[i])
+                                {
+                                    found = false;
+                                    break;
+                                }
+                            }
+                            return found;
+                        });
+                }
+                else
+                {
+                    // Variant verse.
+                    for (s = 0; s < dictDataMatrices[requiredLength].Count; ++s)
+                    {
+                        if (param.MaxStep > 0 && walk > param.MaxStep)
+                        {
+                            return walk;
+                        }
+                        // Prevent replicate verses.
+                        foundOne = true;
+                        if (usedIndices[requiredLength].Contains(s) || curVisisted.Contains(s))
+                        {
+                            foundOne = false;
+                            continue;
+                        }
+                        ++walk;
+                        ushort[] content = dictDataMatrices[requiredLength][s];
+                        foreach (int[] a in constraints)
+                        {
+                            if(a[4] == 0xFF)
+                            {
+                                // Variant anchor.
+                                if (proposal.Contains(a[0]) && curIdx == a[2])
+                                {
+                                    ushort trait = content[a[3]],
+                                    check = result[a[0]].Content[a[1]];
+                                    if (trait != check)
+                                    {
+                                        foundOne = false;
+                                        break;
+                                    }
+                                }
+                            }
+                            else
+                            { 
+                                // Fixed anchor.
+                                if (a[0] == curIdx && content[a[1]] != a[4])
+                                {
+                                    foundOne = false;
+                                    break;
+                                }
+                                if (a[2] == curIdx && content[a[3]] != a[4])
+                                {
+                                    foundOne = false;
+                                    break;
+                                }
+
+                            }
+                            // For each search, check the constraints.
+                            
+                        }
+                        if (foundOne) break;
+                    }
+                }
+                if (foundOne)
+                {
+                    // Next step.
+                    curVisisted.Add(s);
+                    v.Length = requiredLength;
+                    v.Content = dictDataMatrices[requiredLength][s];
+                    result.Add(v);
+                    proposal.Push(curIdx);
+                }
+                else
+                {
+                    // Trace back.
+                    curVisisted.Clear();
+                    result.RemoveAt(result.Count - 1);
+                    int lastIdx = proposal.Pop();
+                    candidate.Push(curIdx);
+                    candidate.Push(lastIdx);
+                }
+            }
+            // Get result.
+            stroke.Verses = result;
+            for (int i = 0; i < nbVerses; ++i)
+            {
+                int requiredLength = stroke.Verses[i].Length;
+                int usedIdx = visited[i][visited[i].Count - 1];
+                if (!param.Reuse) usedIndices[requiredLength].Add(usedIdx);
+            }
+            stroke.IsCompleted = true;
+            return walk;
         }
 
         public Stroke GetResult()

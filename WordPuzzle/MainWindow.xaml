@@ -15,7 +15,7 @@
         <local:GridPointConverter x:Key="GridPointCVTR"/>
     </Window.Resources>
     <materialDesign:DialogHost
-        x:Name="dlgNotification"
+        x:Name="dlgAbout"
         FontFamily="Noto Sans CJK SC"
         TextElement.Foreground="{StaticResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
@@ -23,6 +23,29 @@
         TextOptions.TextRenderingMode="Auto"
         TextElement.FontSize="14"
         >
+        <materialDesign:DialogHost.DialogContent>
+            <materialDesign:Card 
+                x:Name="CardDialogAbout" HorizontalAlignment="Center" VerticalAlignment="Center"
+                Width="300" Height="180" FontFamily="Noto Sans CJK SC">
+                <Grid x:Name="GridAbout">
+                    <Label 
+                        x:Name="lblAbout" Content="关于" FontSize="18" FontWeight="Medium" 
+                        HorizontalAlignment="Center" VerticalAlignment="Top"
+                        Margin="0,10,0,0"/>
+                    <TextBlock
+                        x:Name="tblAbout" VerticalAlignment="Top" 
+                        HorizontalAlignment="Left" Margin="25,60,0,0" TextWrapping="Wrap"
+                        TextElement.FontFamily="Noto Sans CJK SC" TextElement.FontSize="14">
+                        人工智能导论大作业——填词游戏<LineBreak/>
+                        夏卓凡 自66 2016011496<LineBreak/>
+                        2019年春季学期
+                    </TextBlock>
+                    <Button 
+                        x:Name="btnAccept" Content="OK" Style="{StaticResource MaterialDesignFlatButton}" Click="BtnAccept_Click"
+                        HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,25,15" Width="70"/>
+                </Grid>
+            </materialDesign:Card>
+        </materialDesign:DialogHost.DialogContent>
         <Grid x:Name="GridBackground">
             <materialDesign:Card
                 x:Name="CardMenu" materialDesign:ShadowAssist.ShadowDepth="Depth2" Margin="10,65,0,0" Height="147.2" Width="190" HorizontalAlignment="Left">
@@ -31,7 +54,7 @@
                     <ListBoxItem x:Name="lbiBenchmark" Content="人工智能" HorizontalContentAlignment="Center" Selected="LbiBenchmark_Selected"/>
                     <ListBoxItem x:Name="lbiAdjustment" Content="手动指定" HorizontalContentAlignment="Center" Selected="LbiAdjustment_Selected"/>
                     <ListBoxItem x:Name="lbiEditPuzzles" Content="编辑谜题" HorizontalContentAlignment="Center" Selected="LbiEditPuzzles_Selected"/>
-                    <ListBoxItem x:Name="lbiSolveOther" Content="其他谜题" HorizontalContentAlignment="Center"/>
+                    <ListBoxItem x:Name="lbiSolveOther" Content="其他谜题" HorizontalContentAlignment="Center" Selected="LbiSolveOther_Selected"/>
 
                 </ListBox>
             </materialDesign:Card>
@@ -48,7 +71,8 @@
                          Foreground="{DynamicResource WhiteWhite}" Width="35" Height="35" VerticalAlignment="Center">
                         <ListBox x:Name="lbMenu" Width="100" 
                         TextElement.Foreground="{StaticResource MaterialDesignBody}" >
-                            <ListBoxItem x:Name="lbiAbout" Content="关于" HorizontalContentAlignment="Center" />
+                            <ListBoxItem x:Name="lbiAbout" Content="关于" HorizontalContentAlignment="Center" 
+                                         Selected="LbiAbout_Selected"/>
                             <ListBoxItem x:Name="lbiQuit" Content="退出" HorizontalContentAlignment="Center" 
                                      PreviewMouseLeftButtonDown="LbiQuit_PreviewMouseLeftButtonDown" />
                         </ListBox>
@@ -58,7 +82,8 @@
             <ItemsControl 
                 x:Name="icContainer" Margin="220,75,0,0" 
                 ItemsSource="{Binding}" 
-                Width="1085" VerticalAlignment="Top" Height="565" HorizontalAlignment="Left" Visibility="Collapsed">
+                Width="1085" VerticalAlignment="Top" Height="565" HorizontalAlignment="Left" 
+                Visibility="Visible">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <UniformGrid x:Name="GridCards" Columns="34" Rows="18" />
@@ -89,7 +114,7 @@
             </materialDesign:Card>
             <materialDesign:Card 
                 x:Name="CardLeft0" HorizontalAlignment="Left" Margin="10,211.88,0,10" VerticalAlignment="Stretch" 
-                Width="190" Height="520" materialDesign:ShadowAssist.ShadowDepth="Depth2" Visibility="Collapsed">
+                Width="190" Height="520" materialDesign:ShadowAssist.ShadowDepth="Depth2" Visibility="Visible">
                 <Grid x:Name="GridCardLeft0">
                     <Button 
                         x:Name="btnClearBenchmark" HorizontalAlignment="Left" Style="{StaticResource MaterialDesignFloatingActionButton}"
@@ -123,6 +148,8 @@
                     <ToggleButton x:Name="tgReuse"
                         Style="{StaticResource MaterialDesignSwitchToggleButton}" Margin="110,320,25.4,171" />
                     <Label x:Name="lblReuse" Content="允许重复诗句" Margin="15,320,80.4,171" HorizontalAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="95" />
+                    <Button x:Name="btnPrevSuperChar" Content="上一题" HorizontalAlignment="Left" Margin="10,0,0,25" VerticalAlignment="Bottom" Width="80" Style="{StaticResource MaterialDesignRaisedAccentButton}" Height="30" Click="BtnPrevSuperChar_Click"/>
+                    <Button x:Name="btnNextSuperChar" Content="下一题" HorizontalAlignment="Left" Margin="100,0,0,25" VerticalAlignment="Bottom" Width="80" Style="{StaticResource MaterialDesignRaisedAccentButton}" Height="30" Click="BtnNextSuperChar_Click"/>
                 </Grid>
             </materialDesign:Card>
             <materialDesign:Card 
@@ -208,7 +235,7 @@
             </materialDesign:Card>
             <materialDesign:Card 
                 x:Name="CardBottom1" Margin="220,75,10,110" VerticalAlignment="Stretch"
-                materialDesign:ShadowAssist.ShadowDepth="Depth2">
+                materialDesign:ShadowAssist.ShadowDepth="Depth2" Visibility="Collapsed">
                 <Grid x:Name="GridCardBottom1">
                     <DataGrid 
                         x:Name="dgExtraV" Margin="445,120,0,0" VerticalAlignment="Top" Height="300" Width="600" HorizontalAlignment="Left"
@@ -225,7 +252,7 @@
                         x:Name="dgExtraA" HorizontalAlignment="Left" Margin="45,120,0,0" Width="360" VerticalAlignment="Top" Height="300"
                         ItemsSource="{Binding}" materialDesign:DataGridAssist.CellPadding="2" materialDesign:DataGridAssist.ColumnHeaderPadding="2"
                         CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserSortColumns="False"
-                        CanUserResizeColumns="False" CanUserResizeRows="False" AutoGenerateColumns="False" Background="Transparent"> 
+                        CanUserResizeColumns="False" CanUserResizeRows="False" AutoGenerateColumns="False" Background="Transparent">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="句0" Binding="{Binding VSIdxEx}" IsReadOnly="False" Width="*" EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}"/>
                             <DataGridTextColumn Header="字0" Binding="{Binding CSIdxEx}" IsReadOnly="False" Width="*" EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}"/>
@@ -246,7 +273,7 @@
                         x:Name="btnExtraRight" 
                         Style="{StaticResource MaterialDesignFloatingActionAccentButton}"
                         HorizontalAlignment="Right" Height="45" Width="45"
-                        Margin="0,481,909.8,0" VerticalAlignment="Top" Click="BtnExtraRight_Click" 
+                        Margin="0,480,909.8,0" VerticalAlignment="Top" Click="BtnExtraRight_Click" 
                         >
                         <materialDesign:PackIcon Kind="KeyboardArrowRight" Width="30" Height="30"/>
                     </Button>
@@ -257,18 +284,30 @@
                     <Button 
                         x:Name="btnExtraClear" Content="清除结果"
                         HorizontalAlignment="Right" Height="30" Width="100"
-                        Margin="0,0,40,55" VerticalAlignment="Bottom" 
+                        Margin="0,0,40,55" VerticalAlignment="Bottom" Click="BtnExtraClear_Click" 
                         />
                     <Button 
                         x:Name="btnExtraSearch" Content="开始搜索" Height="30"
-                        Margin="0,0,180,55" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="100" 
+                        Margin="0,0,180,55" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="100" Click="BtnExtraSearch_Click" 
                         />
-                    <Label x:Name="lblExtraProg" Content="Label" HorizontalAlignment="Left" Margin="445,480,0,0" VerticalAlignment="Top"/>
+                    <ComboBox 
+                        x:Name="cbMaxStepEx" HorizontalAlignment="Left" Margin="368.6,0,0,52.28" VerticalAlignment="Bottom" Width="120"
+                        SelectedIndex="0" materialDesign:ComboBoxAssist.ShowSelectedItem="False" IsEditable="False"
+                        >
+                        <ComboBoxItem x:Name="NoLimitEx" Content="无限制"/>
+                        <ComboBoxItem x:Name="Max100KEx" Content="1000000"/>
+                        <ComboBoxItem x:Name="Max200KEx" Content="2000000"/>
+                        <ComboBoxItem x:Name="Max300KEx" Content="3000000"/>
+                        <ComboBoxItem x:Name="Max400KEx" Content="4000000"/>
+                    </ComboBox>
+                    <Label x:Name="lblMaxStepsEx" Content="最大搜索步数" HorizontalAlignment="Left" Height="31.72" Margin="247.8,0,0,52.28" VerticalAlignment="Bottom" Width="100"/>
+                    <Label x:Name="lblRandomInitEx" Content="允许重复结果" Height="31.72" Margin="541.6,0,429.6,52.28" VerticalAlignment="Bottom" />
+                    <ToggleButton x:Name="tgRandomInitEx" Content="" HorizontalAlignment="Right" Margin="0,0,374.6,52.28" VerticalAlignment="Bottom" Height="31.72" Width="50" IsChecked="False"/>
                 </Grid>
             </materialDesign:Card>
             <materialDesign:Card 
                 x:Name="CardLeft1" HorizontalAlignment="Left" Margin="10,211.88,0,10" VerticalAlignment="Stretch" 
-                Width="190" Height="520" materialDesign:ShadowAssist.ShadowDepth="Depth2" Visibility="Visible">
+                Width="190" Height="520" materialDesign:ShadowAssist.ShadowDepth="Depth2" Visibility="Collapsed">
                 <Grid 
                     x:Name="GridCardLeft1">
                     <Label x:Name="lblResultV" Content="诗句结果" Height="28.8" Margin="15,10,0,0" VerticalAlignment="Top" FontSize="14" HorizontalAlignment="Left"/>
@@ -278,10 +317,12 @@
                         TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left">
                         <Run Text="句1："/><LineBreak/><Run Text="句2："/></TextBlock>
                     <TextBlock 
-                        x:Name="tblResultA" Height="200" Margin="15,295,0,0" 
+                        x:Name="tblResultA" Height="160
+                        " Margin="15,295,0,0" 
                         TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left">
                         <Run Text="交叉点1："/><LineBreak/><Run Text="交叉点2："/><LineBreak/><Run/>
                     </TextBlock>
+                    <Label x:Name="lblExtraProg" Content="Label" HorizontalAlignment="Center" Margin="0,470,0,0" VerticalAlignment="Top"/>
 
                 </Grid>
             </materialDesign:Card>
